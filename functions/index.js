@@ -15,7 +15,8 @@ function isEntryDomain(host) {
 
 export async function onRequestGet(context) {
   const { request, env } = context;
-  const host = new URL(request.url).hostname;
+  const forwardedHost = request.headers.get('X-Forwarded-Host');
+  const host = forwardedHost || new URL(request.url).hostname;
 
   if (isEntryDomain(host)) {
     const entryJumpUrl = env.ENTRY_JUMP_URL || '';

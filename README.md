@@ -304,7 +304,8 @@ wrangler pages deploy public --project-name=tyjx-landing
 |------|------|
 | 页面显示「获取失败」 | 检查 API_SECRET 是否与 index.html 一致；检查 JUMP_DOMAINS、LANDING_DOMAINS 是否配置 |
 | 环境变量不生效 | 添加变量后需重新部署（Retry deployment 或推送新提交） |
-| 泛域名无法访问 | 确认 DNS 已添加 `*` 的 CNAME 记录；CF 中已添加 `*.xxx.cc` 自定义域名 |
+| 泛域名无法访问 | 确认 DNS 已添加 `*` 的 CNAME 记录；需用 Worker 代理（见 docs/WORKER_PROXY_GUIDE.md） |
+| 入口跳转后子域显示空白 | 确认 Worker 代理已配置（见 docs/WORKER_PROXY_GUIDE.md） |
 | 本地 8788 端口被占用 | 使用 `wrangler pages dev public --port=8888` 指定其他端口 |
 
 ### 3.10 其他说明
