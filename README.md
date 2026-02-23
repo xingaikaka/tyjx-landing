@@ -82,10 +82,24 @@ tyjx-landing/
 
 ## 三、Cloudflare Pages 部署详解
 
+> 详细操作步骤见 [docs/CF_DEPLOY_GUIDE.md](docs/CF_DEPLOY_GUIDE.md)
+
 ### 3.1 前置要求
 
 - [Cloudflare 账号](https://dash.cloudflare.com/sign-up)
 - [Node.js](https://nodejs.org)（用于运行 Wrangler）
+
+### 3.1.1 推送到 GitHub（可选）
+
+若使用 Git 部署，需先将代码推送到 GitHub：
+
+1. 在 [GitHub](https://github.com/new) 创建新仓库，名称 `tyjx-landing`
+2. 本地已配置远程 `origin` → `https://github.com/xingaikaka/tyjx-landing.git`
+3. 执行推送：
+
+```bash
+git push -u origin master
+```
 
 ### 3.2 方式一：Wrangler 命令行部署（推荐）
 
