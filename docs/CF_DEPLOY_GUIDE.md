@@ -37,24 +37,32 @@
 
 ## 二、配置环境变量
 
-### 1. 进入环境变量设置
+> 说明：此项目使用 wrangler.toml 管理明文变量，**仅 Secret（API_SECRET）可在 Dashboard 添加**。
 
-1. 在项目页，点击顶部 **Settings**
-2. 左侧菜单找到 **Environment variables**
-3. 选择 **Production** 环境
+### 1. Dashboard 添加 API_SECRET（Secret）
 
-### 2. 添加变量
+1. 项目页 → **Settings** → **Variables and Secrets**
+2. 点击 **+添加**（配置 API 令牌和运行时变量）
+3. **类型** 选择 **密钥**（Secret）
+4. **变量名称** 填 `API_SECRET`
+5. **值** 填你的 32 字节密钥，如 `your-32-byte-secret-key!!`
+6. 点击 **保存**
 
-点击 **Add variable** → **Add**，依次添加：
+> 该值必须与 `public/index.html` 中的 `API_SECRET` 一致。
 
-| 变量名 | 类型 | 值 | 说明 |
-|--------|------|-----|------|
-| `API_SECRET` | **Encrypt**（Secret） | 你的 32 字节密钥，如 `your-32-byte-secret-key!!` | 必须与 index.html 中一致 |
-| `JUMP_DOMAINS` | **Plain text** | `tyjxnf0skf9h.cc,tyjxlh2wyxr9.cc,tyjxhotpzixm.cc` | 你的泛域名，逗号分隔 |
-| `ENTRY_JUMP_URL` | Plain text | （可选）固定跳转地址 | 留空则随机生成 |
-| `ALLOWED_ORIGINS` | Plain text | （可选）允许的 Origin | 留空则不校验 |
+### 2. wrangler.toml 配置明文变量
 
-每添加一个变量后点击 **Save**。
+编辑项目根目录的 `wrangler.toml`，在 `[vars]` 下配置：
+
+```toml
+[vars]
+JUMP_DOMAINS = "tyjxnf0skf9h.cc,tyjxlh2wyxr9.cc,tyjxhotpzixm.cc"
+# 可选：
+# ENTRY_JUMP_URL = "https://xxx.tyjxnf0skf9h.cc"
+# ALLOWED_ORIGINS = "https://tyjxnf0skf9h.cc"
+```
+
+修改后提交并推送到 GitHub 触发重新部署。
 
 ### 3. 使环境变量生效
 
