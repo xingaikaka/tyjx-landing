@@ -11,9 +11,9 @@
 │                              用户访问流程                                     │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-  主入口 (tyjx.app / tycg.app)              泛域名落地页 (*.xxx.cc)
+  主入口 (tyjx.app / tycg.app)              落地页泛域名 (*.LANDING_DOMAINS)
            │                                        │
-           │  ① GET /entry                          │
+           │  ① GET / 或 /entry                     │
            │  ────────────────────────────────────►│
            │                                        │
            │  ② 返回跳转 HTML                        │
@@ -30,8 +30,8 @@
            │                                        │  ⑥ 返回加密 { jumpDomains }
            │                                        │  ──────────────────────►
            │                                        │
-           │                                        │  ⑦ 前端解密 → 展示地址
-           │                                        │  ⑧ 用户复制 → 访问主站
+           │                                        │  ⑦ 前端解密 → 展示地址（JUMP_DOMAINS 随机子域）
+           │                                        │  ⑧ 用户复制 → 访问主站（跳转/下载泛域名）
            │                                        │
 ```
 
@@ -39,9 +39,9 @@
 
 | 路由 | 方法 | 说明 |
 |------|------|------|
-| `/` | GET | 静态页 index.html，地址发布页 |
+| `/` | GET | 主域名→跳转；落地页泛域名→静态 index.html |
 | `/entry` | GET | 入口跳转页，返回 meta+JS 跳转 |
-| `/Web/GetJumpURL2` | POST | 加密 API，返回可复制地址 |
+| `/Web/GetJumpURL2` | POST | 加密 API，返回可复制地址（JUMP_DOMAINS） |
 
 ### 加解密流程
 
@@ -279,7 +279,8 @@ wrangler pages deploy public --project-name=tyjx-landing
 | 变量名 | 类型 | 值 | 必填 |
 |--------|------|-----|------|
 | `API_SECRET` | **Secret** | 32 字节密钥，如 `your-32-byte-secret-key!!` | 是 |
-| `JUMP_DOMAINS` | Plain text | 泛域名，逗号分隔，如 `tyjxnf0skf9h.cc,tyjxlh2wyxr9.cc,tyjxhotpzixm.cc` | 是 |
+| `LANDING_DOMAINS` | Plain text | 落地页泛域名根域，逗号分隔，指向本 Pages 项目，如 `tyjxnf0skf9h.cc` | 是 |
+| `JUMP_DOMAINS` | Plain text | 跳转/下载泛域名根域，逗号分隔，指向主站，如 `tyjxlh2wyxr9.cc,tyjxhotpzixm.cc` | 是 |
 | `ENTRY_JUMP_URL` | Plain text | 入口固定跳转地址（可选） | 否 |
 | `ALLOWED_ORIGINS` | Plain text | 允许的 Origin，逗号分隔（可选） | 否 |
 
@@ -289,19 +290,19 @@ wrangler pages deploy public --project-name=tyjx-landing
 
 ### 3.8 域名规划示例
 
-| 域名 | 用途 |
-|------|------|
-| tyjx.app | 主入口，用户访问 `/entry` 跳转 |
-| tycg.app | 备用入口 |
-| *.tyjxnf0skf9h.cc | 泛域名落地页 1 |
-| *.tyjxlh2wyxr9.cc | 泛域名落地页 2 |
-| *.tyjxhotpzixm.cc | 泛域名落地页 3 |
+| 域名 | 用途 | 指向 |
+|------|------|------|
+| tyjx.app | 主入口 | 本 Pages 项目 |
+| tycg.app | 备用入口 | 本 Pages 项目 |
+| *.tyjxnf0skf9h.cc | 落地页泛域名（LANDING_DOMAINS） | 本 Pages 项目 |
+| *.tyjxlh2wyxr9.cc | 跳转/下载泛域名（JUMP_DOMAINS） | 主站 |
+| *.tyjxhotpzixm.cc | 跳转/下载泛域名（JUMP_DOMAINS） | 主站 |
 
 ### 3.9 常见问题
 
 | 问题 | 排查 |
 |------|------|
-| 页面显示「获取失败」 | 检查 API_SECRET 是否与 index.html 一致；检查 JUMP_DOMAINS 是否配置 |
+| 页面显示「获取失败」 | 检查 API_SECRET 是否与 index.html 一致；检查 JUMP_DOMAINS、LANDING_DOMAINS 是否配置 |
 | 环境变量不生效 | 添加变量后需重新部署（Retry deployment 或推送新提交） |
 | 泛域名无法访问 | 确认 DNS 已添加 `*` 的 CNAME 记录；CF 中已添加 `*.xxx.cc` 自定义域名 |
 | 本地 8788 端口被占用 | 使用 `wrangler pages dev public --port=8888` 指定其他端口 |
@@ -324,7 +325,8 @@ cp .dev.vars.example .dev.vars
 
 ```
 API_SECRET=your-32-byte-secret-key!!
-JUMP_DOMAINS=tyjxnf0skf9h.cc,tyjxlh2wyxr9.cc,tyjxhotpzixm.cc
+LANDING_DOMAINS=tyjxnf0skf9h.cc
+JUMP_DOMAINS=tyjxlh2wyxr9.cc,tyjxhotpzixm.cc
 ```
 
 **注意**：`API_SECRET` 必须与 `public/index.html` 中的 `API_SECRET` 一致。
@@ -348,7 +350,8 @@ npm run dev
 | 变量 | 必填 | 类型 | 说明 |
 |------|------|------|------|
 | API_SECRET | 是 | Secret | 32 字节密钥，前后端必须一致，用于 AES 加解密 |
-| JUMP_DOMAINS | 是 | Plain text | 泛域名列表，逗号分隔，如 `a.cc,b.cc,c.cc` |
+| LANDING_DOMAINS | 是 | Plain text | 落地页泛域名根域，逗号分隔，指向本 Pages 项目，入口跳转目标 |
+| JUMP_DOMAINS | 是 | Plain text | 跳转/下载泛域名根域，逗号分隔，指向主站，页面「复制网址」返回的地址 |
 | ENTRY_JUMP_URL | 否 | Plain text | 入口页固定跳转地址，不设则随机生成 |
 | ALLOWED_ORIGINS | 否 | Plain text | 允许的 Origin，逗号分隔，空则不校验 |
 

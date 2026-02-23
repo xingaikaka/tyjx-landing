@@ -4,13 +4,13 @@
 
 import { generateSubdomain } from './_shared/utils.js';
 
-const DEFAULTS = { jumpDomains: 'a1b2c3d4.cc,e5f6g7h8.cc' };
+const DEFAULTS = { landingDomains: 'tyjxnf0skf9h.cc' };
 
 export async function onRequestGet(context) {
   const { env } = context;
   const entryJumpUrl = env.ENTRY_JUMP_URL || '';
-  const jumpDomains = env.JUMP_DOMAINS || DEFAULTS.jumpDomains;
-  const baseDomain = String(jumpDomains).split(',')[0]?.trim();
+  const landingDomains = env.LANDING_DOMAINS || env.JUMP_DOMAINS || DEFAULTS.landingDomains;
+  const baseDomain = String(landingDomains).split(',')[0]?.trim();
 
   const jumpUrl = entryJumpUrl || (baseDomain ? `https://${generateSubdomain()}.${baseDomain}` : '/');
 

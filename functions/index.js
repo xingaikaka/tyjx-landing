@@ -7,7 +7,7 @@
 import { generateSubdomain } from './_shared/utils.js';
 
 const ENTRY_HOSTS = ['tyjx.app', 'tycg.app', 'tyjx-landing.pages.dev'];
-const DEFAULTS = { jumpDomains: 'a1b2c3d4.cc,e5f6g7h8.cc' };
+const DEFAULTS = { landingDomains: 'tyjxnf0skf9h.cc' };
 
 function isEntryDomain(host) {
   return ENTRY_HOSTS.some((h) => host === h || host.endsWith('.' + h));
@@ -19,8 +19,8 @@ export async function onRequestGet(context) {
 
   if (isEntryDomain(host)) {
     const entryJumpUrl = env.ENTRY_JUMP_URL || '';
-    const jumpDomains = env.JUMP_DOMAINS || DEFAULTS.jumpDomains;
-    const baseDomain = String(jumpDomains).split(',')[0]?.trim();
+    const landingDomains = env.LANDING_DOMAINS || env.JUMP_DOMAINS || DEFAULTS.landingDomains;
+    const baseDomain = String(landingDomains).split(',')[0]?.trim();
     const jumpUrl = entryJumpUrl || (baseDomain ? `https://${generateSubdomain()}.${baseDomain}` : '/');
 
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta http-equiv="refresh" content="0;url=${jumpUrl}"/><title>天涯精选 - 跳转中</title></head><body><p>正在跳转...</p><script>window.location.href='${jumpUrl}';</script></body></html>`;

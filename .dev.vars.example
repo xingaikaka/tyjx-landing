@@ -2,6 +2,9 @@
 # 不要提交 .dev.vars 到 Git
 
 API_SECRET=your-32-byte-secret-key!!
-JUMP_DOMAINS=a1b2c3d4.cc,e5f6g7h8.cc
-# ENTRY_JUMP_URL=https://xxx.a1b2c3d4.cc
-# ALLOWED_ORIGINS=https://a1b2c3d4.cc,https://e5f6g7h8.cc
+# 落地页泛域名（指向本 Pages 项目，入口跳转目标）
+LANDING_DOMAINS=tyjxnf0skf9h.cc
+# 跳转/下载泛域名（指向主站，页面「复制网址」按钮返回的地址）
+JUMP_DOMAINS=tyjxlh2wyxr9.cc,tyjxhotpzixm.cc
+# ENTRY_JUMP_URL=https://xxx.tyjxnf0skf9h.cc
+# ALLOWED_ORIGINS=https://tyjxnf0skf9h.cc
