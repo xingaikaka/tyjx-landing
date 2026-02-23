@@ -1,0 +1,12 @@
+{
+  "name": "tyjx-landing",
+  "version": "1.0.0",
+  "description": "天涯精选 - 域名发布落地页",
+  "scripts": {
+    "dev": "wrangler pages dev public --compatibility-date=2024-01-01",
+    "deploy": "wrangler pages deploy public --project-name=tyjx-landing",
+    "deploy:script": "bash deploy.sh"
+  },
+  "keywords": ["landing", "jump-url", "cloudflare-pages"],
+  "license": "MIT"
+}

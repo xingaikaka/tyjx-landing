@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#16151B" />
+  <title>天涯精选 - 地址发布页</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif;
+      background: linear-gradient(-135deg, #0f0b19, #16151B);
+      color: #8F8F8F;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0.5rem;
+      padding: 2rem;
+      max-width: 24rem;
+      width: 100%;
+      text-align: center;
+    }
+    .title { font-size: 1.5rem; color: #fff; font-weight: 700; margin-bottom: 0.5rem; }
+    .hint { font-size: 0.85rem; margin: 0.5rem 0 1rem; }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 2rem;
+      padding: 0.6rem 1rem;
+      color: #ff7700;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .btn .domain { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .btn .copy {
+      background: #ff7700;
+      color: #fff;
+      border: none;
+      padding: 0.25rem 0.6rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-left: 0.5rem;
+    }
+    .btn .copy:hover { opacity: 0.9; }
+    .footer { font-size: 0.8rem; margin-top: 1rem; color: #ff7700; }
+    .footer b { color: #ff7700; }
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      font-size: 0.85rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 9999;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 class="title">天涯精选</h1>
+    <p class="hint" style="margin-top:0.25rem">地址发布页</p>
+    <p class="hint">请 Ctrl+D 收藏本页到浏览器收藏夹</p>
+    <p class="hint">— 点击下方按钮复制网址 —</p>
+    <div class="btn-group">
+      <div class="btn">
+        <span class="domain">努力加载中...</span>
+        <button class="copy" data-index="0">复制网址</button>
+      </div>
+      <div class="btn">
+        <span class="domain">努力加载中...</span>
+        <button class="copy" data-index="1">复制网址</button>
+      </div>
+    </div>
+    <p class="hint">请将以上网址复制到浏览器打开</p>
+    <div class="footer">
+      <p>收藏本站永久地址：<b>tyjx.app</b>，备用地址：<b>tycg.app</b>，防止失联！</p>
+      <p>网站域名经常更新，请务必收藏此网页</p>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+  <script src="/assets/js/crypto-util.js"></script>
+  <script>
+    // 密钥需与后端 API_SECRET 一致（生产环境可做混淆）
+    const API_SECRET = 'change-me-in-production-32bytes!!';
+
+    function getDomainParam() {
+      const urlParams = new URLSearchParams(window.location.search);
+      let domain = urlParams.get('domain') || window.location.hostname;
+      return domain.split('.').slice(-2).join('.');
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2000);
+    }
+
+    (function () {
+      const params = { Domain: getDomainParam() };
+      const encrypted = cryptoUtil.encrypt(JSON.stringify(params), API_SECRET);
+      const apiUrl = `${location.protocol}//${location.host}/Web/GetJumpURL2`;
+
+      fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: encrypted,
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error('API error');
+          return res.text();
+        })
+        .then((text) => {
+          const decrypted = cryptoUtil.decrypt(text, API_SECRET);
+          const json = JSON.parse(decrypted);
+          if (json.code !== 0 || !json.data?.jumpDomains) {
+            throw new Error('Invalid response');
+          }
+          const domains = String(json.data.jumpDomains).split(',').map((d) => (d || '').trim()).filter(Boolean);
+          const btns = document.querySelectorAll('.btn');
+          btns.forEach((btn, i) => {
+            const el = btn.querySelector('.domain');
+            if (el) el.textContent = domains[i] || '获取失败';
+          });
+          initCopy(btns);
+        })
+        .catch(() => {
+          document.querySelectorAll('.domain').forEach((el) => (el.textContent = '获取失败'));
+        });
+    })();
+
+    function initCopy(btns) {
+      btns.forEach((btn) => {
+        const copyBtn = btn.querySelector('.copy');
+        const domainEl = btn.querySelector('.domain');
+        copyBtn.onclick = () => {
+          const text = domainEl.textContent.trim();
+          if (text === '获取失败' || text === '努力加载中...') return;
+          navigator.clipboard.writeText(text).then(
+            () => showToast('复制成功！'),
+            () => showToast('复制失败，请手动复制')
+          );
+        };
+      });
+    }
+  </script>
+</body>
+</html>

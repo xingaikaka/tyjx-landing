@@ -1,0 +1,7 @@
+# 复制为 .dev.vars 用于 wrangler pages dev 本地预览
+# 不要提交 .dev.vars 到 Git
+
+API_SECRET=your-32-byte-secret-key!!
+JUMP_DOMAINS=a1b2c3d4.cc,e5f6g7h8.cc
+# ENTRY_JUMP_URL=https://xxx.a1b2c3d4.cc
+# ALLOWED_ORIGINS=https://a1b2c3d4.cc,https://e5f6g7h8.cc

@@ -1,0 +1,13 @@
+# 依赖
+node_modules/
+
+# 环境变量与敏感信息
+.env
+.dev.vars
+
+# 日志与缓存
+*.log
+.wrangler/
+
+# 系统文件
+.DS_Store
