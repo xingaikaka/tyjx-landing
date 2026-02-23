@@ -86,7 +86,7 @@
     .nav-a .va-g a {
       background-color: rgba(255, 255, 255, 0.05);
       border: 0.02667rem solid rgba(255, 255, 255, 0.1);
-      padding: 0 0.06rem 0 0.32rem;
+      padding: 0 0.06rem 0 0.24rem;
       min-height: 1.2rem;
       height: 1.2rem;
       line-height: 1.2rem;
@@ -99,34 +99,34 @@
       font-size: 0.38rem;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      overflow: hidden;
     }
     .nav-a .va-g a .domain-text {
-      flex: 1;
+      flex: 1 1 0;
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       color: #fff;
-      background-color: rgba(0, 0, 0, 0.25);
-      padding: 0 0.28rem;
+      padding: 0 0.2rem 0 0;
       margin-right: 0.16rem;
-      border-radius: 0.5rem;
       min-height: 1rem;
       line-height: 1rem;
       font-size: 0.38rem;
     }
     .nav-a .va-g a .copy-btn {
+      flex-shrink: 0;
+      min-width: 2.5rem;
       min-height: 1rem;
       height: 1rem;
-      min-width: 2rem;
       line-height: 1rem;
       border-radius: 1rem;
-      padding: 0 0.32rem;
+      padding: 0 0.36rem;
       text-align: center;
       background-color: var(--color-primary);
       color: #fff;
       font-size: 0.34rem;
-      flex-shrink: 0;
+      white-space: nowrap;
     }
     .nav-a .va-h { color: var(--color-primary); font-size: 0.38rem; text-align: center; padding: 0.32rem; }
     .nav-a .va-f { text-align: center; font-size: 0.34rem; }
@@ -162,9 +162,9 @@
     @media (max-width: 360px) {
       .page { padding: 0.15rem 0.4rem; }
       .nav-a { padding: 1.2rem 0.24rem 0.24rem 0.24rem; margin-top: 0.2rem; }
-      .nav-a .va-g a { padding: 0 0.04rem 0 0.24rem; }
-      .nav-a .va-g a .domain-text { padding: 0 0.2rem; font-size: 0.34rem; }
-      .nav-a .va-g a .copy-btn { padding: 0 0.24rem; font-size: 0.3rem; }
+      .nav-a .va-g a { padding: 0 0.04rem 0 0.2rem; }
+      .nav-a .va-g a .domain-text { padding: 0 0.16rem 0 0; font-size: 0.34rem; }
+      .nav-a .va-g a .copy-btn { min-width: 2.2rem; padding: 0 0.28rem; font-size: 0.3rem; }
     }
     @media (min-width: 768px) {
       html { font-size: 50px; }
