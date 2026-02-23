@@ -1,72 +1,126 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh" style="font-size: 37.5px;">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#16151B" />
+  <meta name="apple-touch-fullscreen" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="theme-color" content="#16151B">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="format-detection" content="email=no">
+  <link rel="icon" type="image/x-icon" href="/assets/imgs/91.ico">
   <title>天涯精选 - 地址发布页</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *:after, *:before { margin: 0; padding: 0; outline: none; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    ol, ul { list-style: none; }
+    a { text-decoration: none; -webkit-tap-highlight-color: transparent; color: var(--text-color); }
+    img { border: none; vertical-align: middle; }
+    html, body {
+      font-size: 0.37333rem;
+      height: 100%;
+      font-family: PingFang SC, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      overscroll-behavior: none;
+    }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif;
-      background: linear-gradient(-135deg, #0f0b19, #16151B);
-      color: #8F8F8F;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-    .card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 0.5rem;
-      padding: 2rem;
-      max-width: 24rem;
-      width: 100%;
-      text-align: center;
-    }
-    .title { font-size: 1.5rem; color: #fff; font-weight: 700; margin-bottom: 0.5rem; }
-    .hint { font-size: 0.85rem; margin: 0.5rem 0 1rem; }
-    .btn-group {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
-      margin: 1rem 0;
+      height: 100%;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      overflow: hidden;
+      background: linear-gradient(-135deg, #0f0b19, var(--bg-color));
     }
-    .btn {
+    :root {
+      --bg-color: #16151B;
+      --text-color: #8F8F8F;
+      --color-primary: #f70;
+    }
+    .page::-webkit-scrollbar { display: none; }
+    .page {
+      height: 100%;
+      width: 100%;
+      max-width: 11.41333rem;
+      margin: 0 auto;
+      padding: 0.53333rem;
       display: flex;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
+    }
+    .nav-a {
+      position: relative;
+      border-radius: 0.32rem;
+      padding: 1.33333rem 0.26667rem 0.26667rem 0.26667rem;
+      margin-top: 0.8rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 0.02667rem solid rgba(255, 255, 255, 0.1);
+      width: 100%;
+    }
+    .nav-a .va-a {
+      position: absolute;
+      top: -0.8rem;
+      left: calc((100% - 1.70667rem) / 2);
+      width: 1.70667rem;
+      height: 1.70667rem;
+    }
+    .nav-a .va-a img { width: 100%; height: 100%; }
+    .nav-a .va-b { font-size: 0.64rem; color: #fff; font-weight: 800; text-align: center; }
+    .nav-a .va-c { padding: 0.13333rem 0; text-align: center; }
+    .nav-a .va-d { font-weight: 600; color: #fff; text-align: center; }
+    .nav-a .va-g {
+      margin: 0.8rem 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.26667rem;
+    }
+    .nav-a .va-g a {
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 0.02667rem solid rgba(255, 255, 255, 0.1);
+      padding: 0 0.05333rem 0 0.26667rem;
+      height: 1.06667rem;
+      line-height: 1.06667rem;
+      border-radius: 10.66667rem;
+      display: flex;
       justify-content: space-between;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 2rem;
-      padding: 0.6rem 1rem;
-      color: #ff7700;
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
-    .btn .domain { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .btn .copy {
-      background: #ff7700;
+      align-items: center;
       color: #fff;
-      border: none;
-      padding: 0.25rem 0.6rem;
-      border-radius: 1rem;
-      font-size: 0.75rem;
+      font-size: 0.34667rem;
       cursor: pointer;
-      flex-shrink: 0;
-      margin-left: 0.5rem;
     }
-    .btn .copy:hover { opacity: 0.9; }
-    .footer { font-size: 0.8rem; margin-top: 1rem; color: #ff7700; }
-    .footer b { color: #ff7700; }
+    .nav-a .va-g a .domain-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-primary); }
+    .nav-a .va-g a span {
+      height: 0.96rem;
+      line-height: 0.96rem;
+      border-radius: 0.96rem;
+      padding: 0 0.26667rem;
+      text-align: center;
+      background-color: var(--color-primary);
+      color: #fff;
+      font-size: 0.32rem;
+      flex-shrink: 0;
+      margin-left: 0.26667rem;
+    }
+    .nav-a .va-h { color: var(--color-primary); text-align: center; padding: 0.26667rem; }
+    .nav-a .va-f { text-align: center; }
+    .nav-a .va-f span { display: block; margin-bottom: 0.26667rem; }
+    .nav-a .va-f span b { color: var(--color-primary); }
+    .nav-a .va-f p { margin-top: 0.26667rem; padding: 0.10667rem 0.26667rem; }
+    .nav-b {
+      margin-top: 0.53333rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 0.02667rem solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.32rem;
+      text-align: center;
+      padding: 0.4rem;
+      width: 100%;
+    }
     .toast {
       position: fixed;
       bottom: 2rem;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.8);
+      background: rgba(0, 0, 0, 0.8);
       color: #fff;
       padding: 0.5rem 1rem;
       border-radius: 0.25rem;
@@ -79,25 +133,27 @@
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1 class="title">天涯精选</h1>
-    <p class="hint" style="margin-top:0.25rem">地址发布页</p>
-    <p class="hint">请 Ctrl+D 收藏本页到浏览器收藏夹</p>
-    <p class="hint">— 点击下方按钮复制网址 —</p>
-    <div class="btn-group">
-      <div class="btn">
-        <span class="domain">努力加载中...</span>
-        <button class="copy" data-index="0">复制网址</button>
+  <div class="page">
+    <div class="nav-a">
+      <div class="va-a"><img src="/assets/imgs/91.png" alt="logo" /></div>
+      <div class="va-b">地址发布页</div>
+      <div class="va-c">请 Ctrl+D 收藏本页到浏览器收藏夹回家不迷路</div>
+      <div class="va-d">--点击下方按钮进入网站--</div>
+      <div class="va-g">
+        <a><span class="domain-text">努力加载中...</span><span class="copy-btn">复制网址</span></a>
+        <a><span class="domain-text">努力加载中...</span><span class="copy-btn">复制网址</span></a>
       </div>
-      <div class="btn">
-        <span class="domain">努力加载中...</span>
-        <button class="copy" data-index="1">复制网址</button>
+      <div class="va-h">请将以上网址复制浏览器打开</div>
+      <div class="va-f">
+        <span>收藏本站永久地址：<b>tyjx.app</b>，备用地址：<b>tycg.app</b>，防止失联！</span>
+        <p>网站域名经常更新，防止网站打不开</p>
+        <p>请务必收藏此网页，永久有效！</p>
       </div>
     </div>
-    <p class="hint">请将以上网址复制到浏览器打开</p>
-    <div class="footer">
-      <p>收藏本站永久地址：<b>tyjx.app</b>，备用地址：<b>tycg.app</b>，防止失联！</p>
-      <p>网站域名经常更新，请务必收藏此网页</p>
+    <div class="nav-b">
+      安卓用户请使用谷歌(Chrome)浏览器访问<br />
+      iphone用户请使用手机自带Safari浏览器访问<br />
+      无广告、体验流畅、速度更快
     </div>
   </div>
   <div class="toast" id="toast"></div>
@@ -105,7 +161,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
   <script src="/assets/js/crypto-util.js"></script>
   <script>
-    // 密钥需与后端 API_SECRET 一致（生产环境可做混淆）
     const API_SECRET = 'ipu2s74rbl9odlleyt4aywm7sq2fxds2';
 
     function getDomainParam() {
@@ -138,26 +193,24 @@
         .then((text) => {
           const decrypted = cryptoUtil.decrypt(text, API_SECRET);
           const json = JSON.parse(decrypted);
-          if (json.code !== 0 || !json.data?.jumpDomains) {
-            throw new Error('Invalid response');
-          }
+          if (json.code !== 0 || !json.data?.jumpDomains) throw new Error('Invalid response');
           const domains = String(json.data.jumpDomains).split(',').map((d) => (d || '').trim()).filter(Boolean);
-          const btns = document.querySelectorAll('.btn');
-          btns.forEach((btn, i) => {
-            const el = btn.querySelector('.domain');
+          const items = document.querySelectorAll('.va-g a');
+          items.forEach((item, i) => {
+            const el = item.querySelector('.domain-text');
             if (el) el.textContent = domains[i] || '获取失败';
           });
-          initCopy(btns);
+          initCopy(items);
         })
         .catch(() => {
-          document.querySelectorAll('.domain').forEach((el) => (el.textContent = '获取失败'));
+          document.querySelectorAll('.domain-text').forEach((el) => (el.textContent = '获取失败'));
         });
     })();
 
-    function initCopy(btns) {
-      btns.forEach((btn) => {
-        const copyBtn = btn.querySelector('.copy');
-        const domainEl = btn.querySelector('.domain');
+    function initCopy(items) {
+      items.forEach((item) => {
+        const copyBtn = item.querySelector('.copy-btn');
+        const domainEl = item.querySelector('.domain-text');
         copyBtn.onclick = () => {
           const text = domainEl.textContent.trim();
           if (text === '获取失败' || text === '努力加载中...') return;
