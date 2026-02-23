@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh" style="font-size: 37.5px;">
+<html lang="zh" style="font-size: 42px;">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -40,9 +40,9 @@
     .page {
       height: 100%;
       width: 100%;
-      max-width: 11.41333rem;
+      max-width: 12rem;
       margin: 0 auto;
-      padding: 0.53333rem;
+      padding: 0.5rem;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -50,69 +50,82 @@
     }
     .nav-a {
       position: relative;
-      border-radius: 0.32rem;
-      padding: 1.33333rem 0.26667rem 0.26667rem 0.26667rem;
-      margin-top: 0.8rem;
+      border-radius: 0.36rem;
+      padding: 1.4rem 0.32rem 0.32rem 0.32rem;
+      margin-top: 0.85rem;
       background-color: rgba(255, 255, 255, 0.05);
       border: 0.02667rem solid rgba(255, 255, 255, 0.1);
       width: 100%;
     }
     .nav-a .va-a {
       position: absolute;
-      top: -0.8rem;
-      left: calc((100% - 1.70667rem) / 2);
-      width: 1.70667rem;
-      height: 1.70667rem;
+      top: -0.9rem;
+      left: calc((100% - 1.9rem) / 2);
+      width: 1.9rem;
+      height: 1.9rem;
     }
     .nav-a .va-a img { width: 100%; height: 100%; }
-    .nav-a .va-b { font-size: 0.64rem; color: #fff; font-weight: 800; text-align: center; }
-    .nav-a .va-c { padding: 0.13333rem 0; text-align: center; }
-    .nav-a .va-d { font-weight: 600; color: #fff; text-align: center; }
+    .nav-a .va-b { font-size: 0.7rem; color: #fff; font-weight: 800; text-align: center; }
+    .nav-a .va-c { padding: 0.16rem 0; font-size: 0.36rem; text-align: center; }
+    .nav-a .va-d { font-weight: 600; color: #fff; font-size: 0.38rem; text-align: center; }
     .nav-a .va-g {
-      margin: 0.8rem 0;
+      margin: 0.85rem 0;
       display: grid;
       grid-template-columns: 1fr;
-      gap: 0.26667rem;
+      gap: 0.32rem;
     }
     .nav-a .va-g a {
       background-color: rgba(255, 255, 255, 0.05);
       border: 0.02667rem solid rgba(255, 255, 255, 0.1);
-      padding: 0 0.05333rem 0 0.26667rem;
-      height: 1.06667rem;
-      line-height: 1.06667rem;
+      padding: 0 0.06rem 0 0.32rem;
+      height: 1.2rem;
+      line-height: 1.2rem;
       border-radius: 10.66667rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
       color: #fff;
-      font-size: 0.34667rem;
+      font-size: 0.38rem;
       cursor: pointer;
     }
-    .nav-a .va-g a .domain-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-primary); }
-    .nav-a .va-g a span {
-      height: 0.96rem;
-      line-height: 0.96rem;
-      border-radius: 0.96rem;
-      padding: 0 0.26667rem;
+    .nav-a .va-g a .domain-text {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #fff;
+      background-color: rgba(0, 0, 0, 0.25);
+      padding: 0 0.28rem;
+      margin-right: 0.16rem;
+      border-radius: 0.5rem;
+      min-height: 1rem;
+      line-height: 1rem;
+      font-size: 0.38rem;
+    }
+    .nav-a .va-g a .copy-btn {
+      height: 1rem;
+      line-height: 1rem;
+      border-radius: 1rem;
+      padding: 0 0.32rem;
       text-align: center;
       background-color: var(--color-primary);
       color: #fff;
-      font-size: 0.32rem;
+      font-size: 0.34rem;
       flex-shrink: 0;
-      margin-left: 0.26667rem;
     }
-    .nav-a .va-h { color: var(--color-primary); text-align: center; padding: 0.26667rem; }
-    .nav-a .va-f { text-align: center; }
-    .nav-a .va-f span { display: block; margin-bottom: 0.26667rem; }
+    .nav-a .va-h { color: var(--color-primary); font-size: 0.38rem; text-align: center; padding: 0.32rem; }
+    .nav-a .va-f { text-align: center; font-size: 0.34rem; }
+    .nav-a .va-f span { display: block; margin-bottom: 0.28rem; }
     .nav-a .va-f span b { color: var(--color-primary); }
-    .nav-a .va-f p { margin-top: 0.26667rem; padding: 0.10667rem 0.26667rem; }
+    .nav-a .va-f p { margin-top: 0.28rem; padding: 0.12rem 0.28rem; }
     .nav-b {
-      margin-top: 0.53333rem;
+      margin-top: 0.5rem;
       background-color: rgba(255, 255, 255, 0.05);
       border: 0.02667rem solid rgba(255, 255, 255, 0.1);
-      border-radius: 0.32rem;
+      border-radius: 0.36rem;
       text-align: center;
       padding: 0.4rem;
+      font-size: 0.34rem;
       width: 100%;
     }
     .toast {
@@ -123,8 +136,8 @@
       background: rgba(0, 0, 0, 0.8);
       color: #fff;
       padding: 0.5rem 1rem;
-      border-radius: 0.25rem;
-      font-size: 0.85rem;
+      border-radius: 0.28rem;
+      font-size: 0.48rem;
       opacity: 0;
       transition: opacity 0.3s;
       z-index: 9999;
