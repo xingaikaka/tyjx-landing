@@ -34,11 +34,12 @@ export async function onRequestGet(context) {
       return new Response('LANDING_DOMAINS 未配置', { status: 500, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
     }
 
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta http-equiv="refresh" content="0;url=${jumpUrl}"/><title>天涯精选 - 跳转中</title></head><body><p>正在跳转...</p><script>window.location.href='${jumpUrl}';</script></body></html>`;
-
-    return new Response(html, {
-      status: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    return new Response(null, {
+      status: 302,
+      headers: {
+        'Location': jumpUrl,
+        'Cache-Control': 'no-store',
+      },
     });
   }
 
