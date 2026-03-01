@@ -37,26 +37,34 @@
 
 ## 二、配置环境变量
 
-> 说明：此项目使用 wrangler.toml 管理明文变量，**仅 Secret（API_SECRET）可在 Dashboard 添加**。
+### 必填变量
 
-### 1. Dashboard 添加 API_SECRET（Secret）
+| 变量名 | 类型 | 说明 |
+|--------|------|------|
+| `API_SECRET` | Secret | 32 字节密钥，与 index.html 中一致 |
+| `ENTRY_DOMAINS` | Plain text | 主入口域名，逗号分隔，如 `tyjx.app,tycg.app` |
+| `LANDING_DOMAINS` | Plain text | tyjx.com 重定向到的泛域名，逗号分隔 |
+| `STEP2_DOMAINS` | Plain text | 最新地址泛域名，逗号分隔，图1 按钮链接 |
+| `FINAL_DOMAINS` | Plain text | 最后随机地址泛域名，逗号分隔，图2 可复制地址 |
+
+### 1. Dashboard 添加变量
 
 1. 项目页 → **Settings** → **Variables and Secrets**
-2. 点击 **+添加**（配置 API 令牌和运行时变量）
-3. **类型** 选择 **密钥**（Secret）
-4. **变量名称** 填 `API_SECRET`
-5. **值** 填你的 32 字节密钥，如 `your-32-byte-secret-key!!`
-6. 点击 **保存**
+2. 点击 **+添加**，依次添加上述变量
+3. `API_SECRET` 选择类型 **Secret**，其余选择 **Plain text**
 
-> 该值必须与 `public/index.html` 中的 `API_SECRET` 一致。
+> `API_SECRET` 必须与 `public/index.html` 中的 `API_SECRET` 一致。
 
-### 2. wrangler.toml 配置明文变量
+### 2. 或使用 wrangler.toml 配置明文变量
 
 编辑项目根目录的 `wrangler.toml`，在 `[vars]` 下配置：
 
 ```toml
 [vars]
-JUMP_DOMAINS = "tyjxnf0skf9h.cc,tyjxlh2wyxr9.cc,tyjxhotpzixm.cc"
+ENTRY_DOMAINS = "tyjx.app,tycg.app"
+LANDING_DOMAINS = "tyjxn3k8m2p7vc.cc,tyjxq5r9t2xwz1.cc"
+STEP2_DOMAINS = "tyjxbn4w8fgh3.cc,tyjxnf0skf9h.cc"
+FINAL_DOMAINS = "tyjx7k2m9pqs4.cc,tyjxlh2wyxr9.cc,tyjxhotpzixm.cc"
 # 可选：
 # ENTRY_JUMP_URL = "https://xxx.tyjxnf0skf9h.cc"
 # ALLOWED_ORIGINS = "https://tyjxnf0skf9h.cc"
@@ -106,6 +114,16 @@ JUMP_DOMAINS = "tyjxnf0skf9h.cc,tyjxlh2wyxr9.cc,tyjxhotpzixm.cc"
    - `tyjxnf0skf9h.cc` → CNAME → `tyjx-landing.pages.dev`
    - `*` → CNAME → `tyjxnf0skf9h.cc` 或 `tyjx-landing.pages.dev`
 
+### 5. 绑定 STEP2 / FINAL 泛域名（*.tyjxlh2wyxr9.cc 等）
+
+对每个 STEP2_DOMAINS、FINAL_DOMAINS 中的域名重复以下步骤：
+
+1. **Set up a custom domain** → 输入 `tyjxlh2wyxr9.cc`（先绑定根域）
+2. 再添加 `*.tyjxlh2wyxr9.cc`（泛域名）
+3. 在 Cloudflare DNS 中添加 CNAME 记录指向 Pages 项目
+
+同理绑定 `tyjxhotpzixm.cc`、`tyjx7k2m9pqs4.cc`、`tyjxbn4w8fgh3.cc`、`tyjxq5r9t2xwz1.cc`、`tyjxn3k8m2p7vc.cc`。
+
 ---
 
 ## 四、修改前端密钥（重要）
@@ -126,7 +144,7 @@ JUMP_DOMAINS = "tyjxnf0skf9h.cc,tyjxlh2wyxr9.cc,tyjxhotpzixm.cc"
 2. 选择 tyjx-landing 仓库
 3. Build command 留空，Build output directory 填 public
 4. Save and Deploy
-5. Settings → Environment variables → 添加 API_SECRET、JUMP_DOMAINS
+5. Settings → Environment variables → 添加 API_SECRET、ENTRY_DOMAINS、LANDING_DOMAINS、STEP2_DOMAINS、FINAL_DOMAINS
 6. Deployments → Retry deployment
 7. Custom domains → 绑定 tyjx.app、tycg.app、*.xxx.cc
 8. 修改 index.html 中的 API_SECRET 并推送

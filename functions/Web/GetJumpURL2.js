@@ -1,13 +1,14 @@
 /**
  * 获取跳转地址 API - POST /Web/GetJumpURL2
+ * 从 FINAL_DOMAINS（最后随机地址）中随机返回 2 个地址
  */
 
 import { encrypt, decrypt } from '../_shared/crypto.js';
-import { generateSubdomain, parseDomains } from '../_shared/utils.js';
+import { generateSubdomain, parseDomains, pickRandomN } from '../_shared/utils.js';
 
 const DEFAULTS = {
   apiSecret: 'change-me-in-production-32bytes!!',
-  jumpDomains: 'a1b2c3d4.cc,e5f6g7h8.cc',
+  finalDomains: '',
 };
 
 function checkOrigin(request, allowedOrigins) {
@@ -19,7 +20,7 @@ function checkOrigin(request, allowedOrigins) {
 export async function onRequestPost(context) {
   const { request, env } = context;
   const apiSecret = env.API_SECRET || DEFAULTS.apiSecret;
-  const jumpDomains = env.JUMP_DOMAINS || DEFAULTS.jumpDomains;
+  const finalList = parseDomains(env.FINAL_DOMAINS || DEFAULTS.finalDomains, 20);
   const allowedOrigins = env.ALLOWED_ORIGINS || '';
 
   if (!checkOrigin(request, allowedOrigins)) {
@@ -33,8 +34,13 @@ export async function onRequestPost(context) {
     const body = await request.text();
     const decrypted = await decrypt(body, apiSecret);
     const params = JSON.parse(decrypted);
-    const domains = parseDomains(jumpDomains);
-    const urls = domains.map((base) => `https://${generateSubdomain()}.${base}`);
+    const allDomains = finalList;
+    let bases = pickRandomN(allDomains, 2);
+    if (bases.length < 2 && allDomains.length > 0) {
+      const d = allDomains[0];
+      bases = [d, d];
+    }
+    const urls = bases.map((base) => `https://${generateSubdomain()}.${base}`);
 
     const response = {
       code: 0,

@@ -30,7 +30,7 @@
            │                                        │  ⑥ 返回加密 { jumpDomains }
            │                                        │  ──────────────────────►
            │                                        │
-           │                                        │  ⑦ 前端解密 → 展示地址（JUMP_DOMAINS 随机子域）
+           │                                        │  ⑦ 前端解密 → 展示地址（FINAL_DOMAINS 随机子域）
            │                                        │  ⑧ 用户复制 → 访问主站（跳转/下载泛域名）
            │                                        │
 ```
@@ -41,7 +41,7 @@
 |------|------|------|
 | `/` | GET | 主域名→跳转；落地页泛域名→静态 index.html |
 | `/entry` | GET | 入口跳转页，返回 meta+JS 跳转 |
-| `/Web/GetJumpURL2` | POST | 加密 API，返回可复制地址（JUMP_DOMAINS） |
+| `/Web/GetJumpURL2` | POST | 加密 API，返回可复制地址（FINAL_DOMAINS） |
 
 ### 加解密流程
 
@@ -279,8 +279,10 @@ wrangler pages deploy public --project-name=tyjx-landing
 | 变量名 | 类型 | 值 | 必填 |
 |--------|------|-----|------|
 | `API_SECRET` | **Secret** | 32 字节密钥，如 `your-32-byte-secret-key!!` | 是 |
-| `LANDING_DOMAINS` | Plain text | 落地页泛域名根域，逗号分隔，指向本 Pages 项目，如 `tyjxnf0skf9h.cc` | 是 |
-| `JUMP_DOMAINS` | Plain text | 跳转/下载泛域名根域，逗号分隔，指向主站，如 `tyjxlh2wyxr9.cc,tyjxhotpzixm.cc` | 是 |
+| `ENTRY_DOMAINS` | Plain text | 主入口域名，逗号分隔，如 `tyjx.app,tycg.app` | 是 |
+| `LANDING_DOMAINS` | Plain text | tyjx.com 重定向到的泛域名 | 是 |
+| `STEP2_DOMAINS` | Plain text | 最新地址泛域名，图1 按钮链接 | 是 |
+| `FINAL_DOMAINS` | Plain text | 最后随机地址泛域名，图2 可复制地址 | 是 |
 | `ENTRY_JUMP_URL` | Plain text | 入口固定跳转地址（可选） | 否 |
 | `ALLOWED_ORIGINS` | Plain text | 允许的 Origin，逗号分隔（可选） | 否 |
 
@@ -294,15 +296,19 @@ wrangler pages deploy public --project-name=tyjx-landing
 |------|------|------|
 | tyjx.app | 主入口 | 本 Pages 项目 |
 | tycg.app | 备用入口 | 本 Pages 项目 |
-| *.tyjxnf0skf9h.cc | 落地页泛域名（LANDING_DOMAINS） | 本 Pages 项目 |
-| *.tyjxlh2wyxr9.cc | 跳转/下载泛域名（JUMP_DOMAINS） | 主站 |
-| *.tyjxhotpzixm.cc | 跳转/下载泛域名（JUMP_DOMAINS） | 主站 |
+| *.tyjxn3k8m2p7vc.cc | LANDING_DOMAINS 重定向 | 本 Pages 项目 |
+| *.tyjxq5r9t2xwz1.cc | LANDING_DOMAINS 重定向 | 本 Pages 项目 |
+| *.tyjxbn4w8fgh3.cc | STEP2_DOMAINS 最新地址 | 本 Pages 项目 |
+| *.tyjxnf0skf9h.cc | STEP2_DOMAINS 最新地址 | 本 Pages 项目 |
+| *.tyjx7k2m9pqs4.cc | FINAL_DOMAINS 最后随机地址 | 本 Pages 项目 |
+| *.tyjxlh2wyxr9.cc | FINAL_DOMAINS 最后随机地址 | 本 Pages 项目 |
+| *.tyjxhotpzixm.cc | FINAL_DOMAINS 最后随机地址 | 本 Pages 项目 |
 
 ### 3.9 常见问题
 
 | 问题 | 排查 |
 |------|------|
-| 页面显示「获取失败」 | 检查 API_SECRET 是否与 index.html 一致；检查 JUMP_DOMAINS、LANDING_DOMAINS 是否配置 |
+| 页面显示「获取失败」 | 检查 API_SECRET 是否与 index.html 一致；检查 LANDING_DOMAINS、STEP2_DOMAINS、FINAL_DOMAINS 是否配置 |
 | 环境变量不生效 | 添加变量后需重新部署（Retry deployment 或推送新提交） |
 | 泛域名无法访问 | 确认 DNS 已添加 `*` 的 CNAME 记录；需用 Worker 代理（见 docs/WORKER_PROXY_GUIDE.md） |
 | 入口跳转后子域显示空白 | 确认 Worker 代理已配置（见 docs/WORKER_PROXY_GUIDE.md） |
@@ -311,6 +317,8 @@ wrangler pages deploy public --project-name=tyjx-landing
 ### 3.10 其他说明
 
 **主入口与落地页分离**：主入口（tyjx.app）可在 DNS 配置 302 重定向到泛域名（如 `https://xxx.tyjxnf0skf9h.cc`），落地页单独部署本仓库到 CF Pages。
+
+**91jx 风格跳转**：点击「最新地址」会跳转到 `https://随机子域.STEP2_DOMAINS/`（无 URL 参数）。需将 LANDING_DOMAINS、STEP2_DOMAINS、FINAL_DOMAINS 的泛域名均指向本 Pages 项目。
 
 ---
 
@@ -326,8 +334,10 @@ cp .dev.vars.example .dev.vars
 
 ```
 API_SECRET=your-32-byte-secret-key!!
-LANDING_DOMAINS=tyjxnf0skf9h.cc
-JUMP_DOMAINS=tyjxlh2wyxr9.cc,tyjxhotpzixm.cc
+ENTRY_DOMAINS=tyjx.app,tycg.app
+LANDING_DOMAINS=tyjxn3k8m2p7vc.cc,tyjxq5r9t2xwz1.cc
+STEP2_DOMAINS=tyjxbn4w8fgh3.cc,tyjxnf0skf9h.cc
+FINAL_DOMAINS=tyjx7k2m9pqs4.cc,tyjxlh2wyxr9.cc,tyjxhotpzixm.cc
 ```
 
 **注意**：`API_SECRET` 必须与 `public/index.html` 中的 `API_SECRET` 一致。
@@ -351,8 +361,10 @@ npm run dev
 | 变量 | 必填 | 类型 | 说明 |
 |------|------|------|------|
 | API_SECRET | 是 | Secret | 32 字节密钥，前后端必须一致，用于 AES 加解密 |
-| LANDING_DOMAINS | 是 | Plain text | 落地页泛域名根域，逗号分隔，指向本 Pages 项目，入口跳转目标 |
-| JUMP_DOMAINS | 是 | Plain text | 跳转/下载泛域名根域，逗号分隔，指向主站，页面「复制网址」返回的地址 |
+| ENTRY_DOMAINS | 是 | Plain text | 主入口域名，逗号分隔，如 tyjx.app,tycg.app |
+| LANDING_DOMAINS | 是 | Plain text | tyjx.com 重定向到的泛域名，逗号分隔 |
+| STEP2_DOMAINS | 是 | Plain text | 最新地址泛域名，逗号分隔，图1 按钮链接 |
+| FINAL_DOMAINS | 是 | Plain text | 最后随机地址泛域名，逗号分隔，图2 可复制地址 |
 | ENTRY_JUMP_URL | 否 | Plain text | 入口页固定跳转地址，不设则随机生成 |
 | ALLOWED_ORIGINS | 否 | Plain text | 允许的 Origin，逗号分隔，空则不校验 |
 

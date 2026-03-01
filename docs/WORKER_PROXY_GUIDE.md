@@ -81,6 +81,11 @@ export default {
 
 若有多个落地页根域（如 `tyjxlh2wyxr9.cc`），继续添加：
 
+- `*tyjxn3k8m2p7vc.cc/*`
+- `*tyjxq5r9t2xwz1.cc/*`
+- `*tyjxbn4w8fgh3.cc/*`
+- `*tyjxnf0skf9h.cc/*`
+- `*tyjx7k2m9pqs4.cc/*`
 - `*tyjxlh2wyxr9.cc/*`
 - `*tyjxhotpzixm.cc/*`
 

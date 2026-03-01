@@ -2,9 +2,14 @@
 # 不要提交 .dev.vars 到 Git
 
 API_SECRET=your-32-byte-secret-key!!
-# 落地页泛域名（指向本 Pages 项目，入口跳转目标）
-LANDING_DOMAINS=tyjxnf0skf9h.cc
-# 跳转/下载泛域名（指向主站，页面「复制网址」按钮返回的地址）
-JUMP_DOMAINS=tyjxlh2wyxr9.cc,tyjxhotpzixm.cc
+# 主入口域名（tyjx.com 等，访问时重定向；本地开发可加 tyjx-landing.pages.dev）
+ENTRY_DOMAINS=tyjx.app,tycg.app
+# tyjx.com 重定向到的泛域名（多个则随机选一）
+LANDING_DOMAINS=tyjxn3k8m2p7vc.cc,tyjxq5r9t2xwz1.cc
+# 最新地址（图1 按钮链接，点击后跳转）
+STEP2_DOMAINS=tyjxbn4w8fgh3.cc,tyjxnf0skf9h.cc
+# 最后随机地址（图2 可复制的 2 个地址）
+FINAL_DOMAINS=tyjx7k2m9pqs4.cc,tyjxlh2wyxr9.cc,tyjxhotpzixm.cc
+
 # ENTRY_JUMP_URL=https://xxx.tyjxnf0skf9h.cc
 # ALLOWED_ORIGINS=https://tyjxnf0skf9h.cc
