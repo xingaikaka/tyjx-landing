@@ -58,9 +58,9 @@
       </div>
       <div class="va-h" id="step2-hint" style="display:none">请将以上网址复制浏览器打开</div>
       <div class="va-f" id="va-f-address">
-        <span class="va-f-line">收藏本站永久地址：<b id="entry-primary">-</b>，备用地址：<b id="entry-backup">-</b>，防止失联！</span>
-        <span class="va-f-line">网站域名经常更新，防止网站打不开</span>
-        <span class="va-f-line">请务必收藏此网页，永久有效！</span>
+        <span class="va-f-line">收藏本站永久地址: <b id="entry-primary">-</b>, 防止失联!</span>
+        <span class="va-f-line">网站域名经常更新, 防止网站打不开</span>
+        <span class="va-f-line">请务必收藏此网页, 永久有效!</span>
       </div>
     </div>
     <div class="nav-b">
@@ -198,9 +198,7 @@
       function updateEntryDomains(entryDomains) {
         const arr = Array.isArray(entryDomains) ? entryDomains : [];
         const primary = document.getElementById('entry-primary');
-        const backup = document.getElementById('entry-backup');
         if (primary) primary.textContent = arr[0] || '-';
-        if (backup) backup.textContent = arr[1] || '-';
       }
 
       fetch(`${location.protocol}//${location.host}/Web/GetDomainList`)
