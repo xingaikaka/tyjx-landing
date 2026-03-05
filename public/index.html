@@ -105,6 +105,16 @@
       return s;
     }
 
+    function getChannelCodeParam() {
+      return new URLSearchParams(window.location.search).get('channelCode') || '';
+    }
+
+    function appendChannelCode(url, channelCode) {
+      if (!url || !channelCode) return url;
+      const sep = url.includes('?') ? '&' : '?';
+      return url + sep + 'channelCode=' + encodeURIComponent(channelCode);
+    }
+
     function showToast(msg) {
       const el = document.getElementById('toast');
       el.textContent = msg;
@@ -128,6 +138,7 @@
         step2Area.style.display = 'grid';
         step2Hint.style.display = 'block';
 
+        const channelCode = getChannelCodeParam();
         const params = { Domain: baseDomain, domainIndex: domainIndex };
         const encrypted = cryptoUtil.encrypt(JSON.stringify(params), API_SECRET);
         const apiUrl = `${location.protocol}//${location.host}/Web/GetJumpURL2`;
@@ -148,11 +159,13 @@
             const urls = String(json.data.jumpDomains).split(',').map((d) => (d || '').trim()).filter(Boolean);
             const items = document.querySelectorAll('.va-g a');
             items.forEach((item, i) => {
-              const url = urls[i] || '';
+              const rawUrl = urls[i] || '';
+              const displayUrl = rawUrl ? (rawUrl.startsWith('http') ? rawUrl : 'https://' + rawUrl) : '';
+              const fullUrl = channelCode ? appendChannelCode(displayUrl, channelCode) : displayUrl;
               const el = item.querySelector('.domain-text');
-              const displayUrl = url ? (url.startsWith('http') ? url : 'https://' + url) : '';
-              if (el) el.textContent = url || '获取失败';
-              item.href = displayUrl || 'javascript:;';
+              if (el) el.textContent = displayUrl ? displayUrl.replace(/^https?:\/\//, '') : '获取失败';
+              item.href = fullUrl || 'javascript:;';
+              item.dataset.copyUrl = fullUrl || '';
             });
             initCopy(items);
             markPageReady();
@@ -173,15 +186,19 @@
             const domains = data.domains || [];
             const fallback = data.fallbackDomain || '';
             updateEntryDomains(data.entryDomains);
+            const channelCode = getChannelCodeParam();
             if (domains.length > 0) {
               step1Btns.innerHTML = domains
                 .map((d, i) => {
-                  const url = 'https://' + randomSubdomain() + '.' + d + '/';
+                  let url = 'https://' + randomSubdomain() + '.' + d + '/';
+                  if (channelCode) url = appendChannelCode(url, channelCode);
                   return '<a href="' + url + '">最新地址' + (i + 1) + '</a>';
                 })
                 .join('');
             } else if (fallback) {
-              step1Btns.innerHTML = '<a href="https://' + randomSubdomain() + '.' + fallback + '/">最新地址1</a>';
+              let url = 'https://' + randomSubdomain() + '.' + fallback + '/';
+              if (channelCode) url = appendChannelCode(url, channelCode);
+              step1Btns.innerHTML = '<a href="' + url + '">最新地址1</a>';
             } else {
               step1Btns.innerHTML = '<a href="javascript:;">获取失败，请刷新重试</a>';
             }
@@ -233,10 +250,11 @@
         copyBtn.onclick = (e) => {
           e.preventDefault();
           e.stopPropagation();
-          const text = domainEl.textContent.trim();
+          const urlToCopy = item.dataset.copyUrl || item.href;
+          if (!urlToCopy || urlToCopy === 'javascript:;') return;
+          const text = domainEl ? domainEl.textContent.trim() : '';
           if (text === '获取失败' || text === '努力加载中...') return;
-          const url = text.startsWith('http') ? text : 'https://' + text;
-          navigator.clipboard.writeText(url).then(
+          navigator.clipboard.writeText(urlToCopy).then(
             () => showToast('复制成功！'),
             () => showToast('复制失败，请手动复制')
           );

@@ -29,9 +29,13 @@ export async function onRequestGet(context) {
     const entryJumpUrl = env.ENTRY_JUMP_URL || '';
     const landingList = parseDomains(env.LANDING_DOMAINS || DEFAULTS.landingDomains, 20);
     const baseDomain = pickRandom(landingList) || landingList[0];
-    const jumpUrl = entryJumpUrl || (baseDomain ? `https://${generateSubdomain()}.${baseDomain}` : null);
+    let jumpUrl = entryJumpUrl || (baseDomain ? `https://${generateSubdomain()}.${baseDomain}` : null);
     if (!jumpUrl) {
       return new Response('LANDING_DOMAINS 未配置', { status: 500, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+    }
+    const reqUrl = new URL(request.url);
+    if (reqUrl.search) {
+      jumpUrl += (jumpUrl.includes('?') ? '&' : '?') + reqUrl.search.slice(1);
     }
 
     return new Response(null, {
