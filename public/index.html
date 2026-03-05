@@ -243,6 +243,27 @@
         });
     })();
 
+    function copyToClipboard(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
+      }
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;width:2em;height:2em;padding:0;border:none;outline:none;opacity:0;font-size:16px;';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok ? Promise.resolve() : Promise.reject(new Error('execCommand failed'));
+      } catch (err) {
+        document.body.removeChild(ta);
+        return Promise.reject(err);
+      }
+    }
+
     function initCopy(items) {
       items.forEach((item) => {
         const copyBtn = item.querySelector('.copy-btn');
@@ -254,7 +275,7 @@
           if (!urlToCopy || urlToCopy === 'javascript:;') return;
           const text = domainEl ? domainEl.textContent.trim() : '';
           if (text === '获取失败' || text === '努力加载中...') return;
-          navigator.clipboard.writeText(urlToCopy).then(
+          copyToClipboard(urlToCopy).then(
             () => showToast('复制成功！'),
             () => showToast('复制失败，请手动复制')
           );
