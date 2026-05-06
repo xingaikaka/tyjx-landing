@@ -1,377 +1,121 @@
-# 天涯精选 - 落地页
+# tyjx-landing
 
-基于 Cloudflare Pages + Functions 的域名发布落地页，使用 Web Crypto API 加密通信。
+天涯精选 **对外链路**(tyjx.app)的全套实现。覆盖:
 
----
-
-## 一、整体逻辑
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              用户访问流程                                     │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-  主入口 (tyjx.app / tycg.app)              落地页泛域名 (*.LANDING_DOMAINS)
-           │                                        │
-           │  ① GET / 或 /entry                     │
-           │  ────────────────────────────────────►│
-           │                                        │
-           │  ② 返回跳转 HTML                        │
-           │  (meta refresh + window.location)      │
-           │  ◄────────────────────────────────────│
-           │                                        │
-           │  ③ 浏览器跳转                           │
-           │  ────────────────────────────────────►│
-           │                                        │
-           │                                        │  ④ 加载 index.html
-           │                                        │  ⑤ POST /Web/GetJumpURL2
-           │                                        │     Body: 加密 { Domain }
-           │                                        │  ◄──────────────────────
-           │                                        │  ⑥ 返回加密 { jumpDomains }
-           │                                        │  ──────────────────────►
-           │                                        │
-           │                                        │  ⑦ 前端解密 → 展示地址（FINAL_DOMAINS 随机子域）
-           │                                        │  ⑧ 用户复制 → 访问主站（跳转/下载泛域名）
-           │                                        │
-```
-
-### 三个核心路由
-
-| 路由 | 方法 | 说明 |
-|------|------|------|
-| `/` | GET | 主域名→跳转；落地页泛域名→静态 index.html |
-| `/entry` | GET | 入口跳转页，返回 meta+JS 跳转 |
-| `/Web/GetJumpURL2` | POST | 加密 API，返回可复制地址（FINAL_DOMAINS） |
-
-### 加解密流程
-
-```
-请求: { Domain: "a1b2c3d4.cc" }
-  → 前端 CryptoJS 加密
-  → POST 密文
-  → Functions Web Crypto 解密
-  → 生成随机子域 URL
-  → 加密响应
-  → 前端解密 → 填充按钮
-```
+- 品牌门户域跳转(`tyjx.app`)
+- 入口页面(图 1:"最新地址"按钮列表)
+- 发布页面(图 2:"复制网址" 按钮列表)
+- admin 后台(管域池、入口/发布页 UI、真落地页内容)
+- 真落地页本体(Next.js,见 `packages/luodiye_video/`)
 
 ---
 
-## 二、项目结构
+## 业务定位
+
+| 域 | 用途 | 落地链路 |
+|---|---|---|
+| `tyjx.app` | **app 内分享 + 品牌门户**(微信分享、APP logo) | tyjx.app → 入口页 → 发布页 → 用户复制 → `luodiye_video` |
+| `tyapp.app`(在 `dp/` 仓库) | **广告投放渠道** | 自动直跳,走主系统 `dp/tyjx-landing-page` |
+
+两条链路完全独立,共用资源 EdgeOne(`tyjx.calculus.xin`)。
+
+详见 [`docs/architecture.md`](docs/architecture.md)。
+
+---
+
+## 目录结构
 
 ```
 tyjx-landing/
-├── functions/
-│   ├── _shared/
-│   │   ├── crypto.js      # Web Crypto 加解密
-│   │   └── utils.js       # generateSubdomain, parseDomains
-│   ├── Web/
-│   │   └── GetJumpURL2.js # API
-│   └── entry.js           # 入口跳转
-├── public/
-│   ├── _routes.json       # 仅上述路由走 Function，其余走静态
-│   ├── index.html
-│   └── assets/js/
-│       └── crypto-util.js # 前端加密（CryptoJS）
-├── package.json
-├── wrangler.toml
-└── .dev.vars.example
+├── packages/
+│   ├── relay-server/    tyjx-portal-server(VPS Node 中转层,替代 CF Worker)
+│   ├── admin-server/    admin 后端(Express + SQLite + JWT + R2 + HLS 转码)
+│   ├── admin-web/       admin 前端(React + Vite + 横向 4tab)
+│   └── luodiye_video/   真落地页(Next.js, host ∈ finalLandings)
+├── deploy/              nginx / pm2 / acme.sh 脚本
+├── docs/                架构 + 部署 + 运维文档
+└── _legacy/             旧 CF Pages / Worker 代码(归档,不再维护)
+```
+
+> **架构变更(2026-05)**:已从 Cloudflare Worker 迁移到 VPS Node 中转层
+> (`packages/relay-server` → 部署为 `tyjx-portal-server`,见 [`packages/relay-server/README.md`](packages/relay-server/README.md))。
+> 所有 5 个 zone(brand + entry×2 + publish×2)的请求由 cdn666 → VPS:80 → Node:3020 处理,
+> 不再走 Cloudflare Worker / KV。
+
+---
+
+## 开发
+
+```bash
+pnpm install                # 装依赖(monorepo)
+
+pnpm dev:relay-server       # 中转层(3020)
+pnpm dev:admin-server       # admin 后端(3010)
+pnpm dev:admin-web          # admin 前端(3011)
+pnpm dev:landing            # 真落地页(Next.js,3008)
 ```
 
 ---
 
-## 三、Cloudflare Pages 部署详解
+## 部署
 
-> 详细操作步骤见 [docs/CF_DEPLOY_GUIDE.md](docs/CF_DEPLOY_GUIDE.md)
+服务器:`43.128.4.201`
 
-### 3.1 前置要求
+| 端口 | 进程 |
+|---|---|
+| 3010 | admin-server(PM2:`tyjxapp-admin`) |
+| 3020 | relay-server(PM2:`tyjx-portal-server`,**5 个 zone 中转**) |
+| 3011 | admin-web(nginx 静态) |
+| —    | luodiye_video(nginx 直接服务 `out/`,finalLandings) |
 
-- [Cloudflare 账号](https://dash.cloudflare.com/sign-up)
-- [Node.js](https://nodejs.org)（用于运行 Wrangler）
+入口流量:cdn666 → VPS:80 → Nginx → `127.0.0.1:3020`(relay-server)
 
-### 3.1.1 推送到 GitHub（可选）
+详见 [`docs/deployment.md`](docs/deployment.md)。
 
-若使用 Git 部署，需先将代码推送到 GitHub：
+媒体存储:支持 `local`(本机磁盘) / `r2`(R2 + 腾讯 CDN 回源) 二选一,见 [`docs/storage-r2.md`](docs/storage-r2.md)。
 
-1. 在 [GitHub](https://github.com/new) 创建新仓库，名称 `tyjx-landing`
-2. 本地已配置远程 `origin` → `https://github.com/xingaikaka/tyjx-landing.git`
-3. 执行推送：
+---
 
-```bash
-git push -u origin master
+## 域池层级(完全可配,admin 后台动态管理)
+
+```
+brandDomains[]   tyjx.app                               ← 品牌域(用户记忆)
+entryPages[]     tyjxn3k8m2p7vc.cc, tyjxq5r9t2xwz1.cc   ← 入口页面泛域池(N 可配)
+publishPages[]   tyjxbn4w8fgh3.cc, tyjxnf0skf9h.cc      ← 发布页面泛域池(N 可配)
+finalLandings[]  tyjx7k2m9pqs4.cc, tyjxlh2wyxr9.cc,
+                 tyjxhotpzixm.cc                        ← 真落地页泛域池(N 可配)
+
+合计:8 个域,4 层结构
 ```
 
-### 3.2 方式一：Wrangler 命令行部署（推荐）
+> 默认值已经填充到 `packages/admin-server/src/seed/initial-config.json`,首次启动 admin-server 时自动入库。
 
-本项目包含 Pages Functions，**推荐使用 Wrangler**，可完整部署静态页 + API + 入口跳转。
+加新域 → admin 后台一键(可选自动化:CF API + acme.sh + nginx reload)。
 
-**快速命令**：
+---
 
-```bash
-wrangler login
-wrangler pages project create tyjx-landing   # 首次
-wrangler pages deploy public --project-name=tyjx-landing
+## 链路示意
+
 ```
-
-#### 步骤 1：安装 Wrangler
-
-```bash
-npm install -g wrangler
-```
-
-或使用 npx（无需全局安装）：
-
-```bash
-npx wrangler --version
-```
-
-#### 步骤 2：登录 Cloudflare
-
-```bash
-wrangler login
-```
-
-浏览器会打开，按提示完成授权。
-
-#### 步骤 3：创建项目（首次）
-
-```bash
-cd /path/to/app-landing-page
-wrangler pages project create tyjx-landing
-```
-
-按提示输入项目名（如 `tyjx-landing`）和 Production branch（如 `main`）。
-
-#### 步骤 4：部署
-
-在项目根目录执行：
-
-```bash
-npm run deploy
-# 或使用部署脚本（含检查与提示）
-./deploy.sh
-```
-
-首次部署可使用脚本自动创建项目：
-
-```bash
-./deploy.sh --create
-```
-
-**注意**：必须在项目根目录执行，Wrangler 会自动识别同级的 `functions/` 目录并一并部署。
-
-#### 步骤 5：配置环境变量
-
-1. 打开 [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages**
-2. 选择项目 `tyjx-landing`
-3. **Settings** → **Environment variables**
-4. 添加变量（见下方「环境变量」章节）
-
-#### 步骤 6：重新部署使环境变量生效
-
-修改环境变量后，需重新部署：
-
-```bash
-wrangler pages deploy public --project-name=tyjx-landing
+[ 用户 ] tyjx.app                    ─┐
+   │ 302                              │
+   ▼                                  │
+[ entryPages 池随机 1 ]  *.cc          │
+   │ 显示入口 HTML(图 1)             │  cdn666 → VPS:80 → Nginx
+   │ JS 跳转(无 a href)              │  → relay-server :3020
+   ▼                                  │  (从 admin :3010 拉 runtime,
+[ publishPages 池随机 1 ]  *.cc        │   AES-CBC iv:cipher 解密)
+   │ 显示发布 HTML(图 2)             │
+   │ N 个"复制网址",用户复制粘贴   ─┘
+   ▼
+[ finalLandings 池随机 1 ]  <随机子域>.*.cc
+   │ nginx 静态服务 luodiye_video/out  ← 此层独立,不经过 relay-server
+   │ 视频背景 + Logo + 下载按钮
+   └ 真落地页(对外清白版)
 ```
 
 ---
 
-### 3.3 方式二：Dashboard 手动复制/拖拽上传
+## License
 
-通过 Cloudflare Dashboard 拖拽上传文件，无需安装 Wrangler。
-
-#### 步骤 1：创建项目
-
-1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. **Workers & Pages** → **Create** → **Pages**
-3. 选择 **Direct Upload**（直接上传）
-4. 输入项目名 `tyjx-landing`，点击 **Create project**
-
-#### 步骤 2：准备上传文件
-
-将 `public` 目录下的**所有文件**打成 zip，或直接拖拽整个 `public` 文件夹。
-
-需包含：
-- `index.html`
-- `_routes.json`
-- `assets/` 目录（含 `js/crypto-util.js`）
-
-#### 步骤 3：上传并部署
-
-1. 在项目页点击 **Create deployment**
-2. 选择 **Production**
-3. 将 `public` 文件夹或 zip 拖入上传区域
-4. 点击 **Save and Deploy**
-
-#### ⚠️ 重要限制
-
-**Dashboard 拖拽上传不支持 Pages Functions**。使用此方式部署后：
-
-- ✅ 静态页 `index.html` 可访问
-- ❌ `/Web/GetJumpURL2` API 不可用，页面会显示「获取失败」
-- ❌ `/entry` 入口跳转不可用
-
-若需要完整的 API 和入口跳转功能，请使用 **方式一（Wrangler）** 部署。
-
----
-
-### 3.4 方式三：通过 Git 连接部署（可选）
-
-若使用 GitHub，可配置推送后自动部署：
-
-1. Dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
-2. 选择仓库，配置 **Build command** 留空，**Build output directory** 填 `public`
-3. 点击 **Save and Deploy**
-4. **Settings** → **Environment variables** 添加变量（见 3.7 节）
-
-### 3.5 绑定自定义域名
-
-#### 主入口域名（tyjx.app、tycg.app）
-
-1. 项目 → **Custom domains** → **Set up a custom domain**
-2. 输入 `tyjx.app`，按提示在域名注册商处添加 CNAME：
-   - 类型：`CNAME`
-   - 名称：`@` 或 `tyjx`
-   - 目标：`<project>.pages.dev`（如 `tyjx-landing.pages.dev`）
-3. 若域名在 Cloudflare 解析，通常会自动添加记录
-4. 等待 SSL 证书签发（约 1–5 分钟）
-
-#### 泛域名（*.tyjxnf0skf9h.cc 等）
-
-1. **Custom domains** → **Set up a custom domain**
-2. 输入 `tyjxnf0skf9h.cc`（先绑定根域）
-3. 再添加 `*.tyjxnf0skf9h.cc`（泛域名）
-4. 在域名 DNS 中添加：
-   - `tyjxnf0skf9h.cc` → CNAME → `<project>.pages.dev`
-   - `*` → CNAME → `<project>.pages.dev` 或 `tyjxnf0skf9h.cc`
-
-**Cloudflare DNS 泛解析**：名称填 `*`，目标填 `tyjxnf0skf9h.cc` 或 Pages 提供的 CNAME。
-
-### 3.6 关键文件说明
-
-| 文件 | 作用 |
-|------|------|
-| `public/_routes.json` | 指定哪些路径由 Functions 处理，其余走静态资源 |
-| `functions/` | Pages Functions 代码，自动识别并部署 |
-| `wrangler.toml` | Wrangler 配置，`pages_build_output_dir` 指向 `public` |
-
-**`_routes.json` 示例**：
-
-```json
-{
-  "version": 1,
-  "include": ["/Web/GetJumpURL2", "/entry", "/entry/"],
-  "exclude": []
-}
-```
-
-仅 `include` 中的路径会触发 Functions，其他请求返回静态文件。
-
-### 3.7 环境变量配置（Dashboard）
-
-无论用哪种方式部署，环境变量均在 Dashboard 配置：
-
-1. 项目 → **Settings** → **Environment variables**
-2. 选择 **Production**，点击 **Add variable**
-3. 按需添加：
-
-| 变量名 | 类型 | 值 | 必填 |
-|--------|------|-----|------|
-| `API_SECRET` | **Secret** | 32 字节密钥，如 `your-32-byte-secret-key!!` | 是 |
-| `ENTRY_DOMAINS` | Plain text | 主入口域名，逗号分隔，如 `tyjx.app,tycg.app` | 是 |
-| `LANDING_DOMAINS` | Plain text | tyjx.com 重定向到的泛域名 | 是 |
-| `STEP2_DOMAINS` | Plain text | 最新地址泛域名，图1 按钮链接 | 是 |
-| `FINAL_DOMAINS` | Plain text | 最后随机地址泛域名，图2 可复制地址 | 是 |
-| `ENTRY_JUMP_URL` | Plain text | 入口固定跳转地址（可选） | 否 |
-| `ALLOWED_ORIGINS` | Plain text | 允许的 Origin，逗号分隔（可选） | 否 |
-
-**注意**：`API_SECRET` 必须与 `public/index.html` 中的 `API_SECRET` 完全一致。
-
-4. 添加后点击 **Save**，修改后需重新部署一次
-
-### 3.8 域名规划示例
-
-| 域名 | 用途 | 指向 |
-|------|------|------|
-| tyjx.app | 主入口 | 本 Pages 项目 |
-| tycg.app | 备用入口 | 本 Pages 项目 |
-| *.tyjxn3k8m2p7vc.cc | LANDING_DOMAINS 重定向 | 本 Pages 项目 |
-| *.tyjxq5r9t2xwz1.cc | LANDING_DOMAINS 重定向 | 本 Pages 项目 |
-| *.tyjxbn4w8fgh3.cc | STEP2_DOMAINS 最新地址 | 本 Pages 项目 |
-| *.tyjxnf0skf9h.cc | STEP2_DOMAINS 最新地址 | 本 Pages 项目 |
-| *.tyjx7k2m9pqs4.cc | FINAL_DOMAINS 最后随机地址 | 本 Pages 项目 |
-| *.tyjxlh2wyxr9.cc | FINAL_DOMAINS 最后随机地址 | 本 Pages 项目 |
-| *.tyjxhotpzixm.cc | FINAL_DOMAINS 最后随机地址 | 本 Pages 项目 |
-
-### 3.9 常见问题
-
-| 问题 | 排查 |
-|------|------|
-| 页面显示「获取失败」 | 检查 API_SECRET 是否与 index.html 一致；检查 LANDING_DOMAINS、STEP2_DOMAINS、FINAL_DOMAINS 是否配置 |
-| 环境变量不生效 | 添加变量后需重新部署（Retry deployment 或推送新提交） |
-| 泛域名无法访问 | 确认 DNS 已添加 `*` 的 CNAME 记录；需用 Worker 代理（见 docs/WORKER_PROXY_GUIDE.md） |
-| 入口跳转后子域显示空白 | 确认 Worker 代理已配置（见 docs/WORKER_PROXY_GUIDE.md） |
-| 本地 8788 端口被占用 | 使用 `wrangler pages dev public --port=8888` 指定其他端口 |
-
-### 3.10 其他说明
-
-**主入口与落地页分离**：主入口（tyjx.app）可在 DNS 配置 302 重定向到泛域名（如 `https://xxx.tyjxnf0skf9h.cc`），落地页单独部署本仓库到 CF Pages。
-
-**91jx 风格跳转**：点击「最新地址」会跳转到 `https://随机子域.STEP2_DOMAINS/`（无 URL 参数）。需将 LANDING_DOMAINS、STEP2_DOMAINS、FINAL_DOMAINS 的泛域名均指向本 Pages 项目。
-
----
-
-## 四、本地开发
-
-### 4.1 配置环境变量
-
-```bash
-cp .dev.vars.example .dev.vars
-```
-
-编辑 `.dev.vars`，填入与生产一致的值：
-
-```
-API_SECRET=your-32-byte-secret-key!!
-ENTRY_DOMAINS=tyjx.app,tycg.app
-LANDING_DOMAINS=tyjxn3k8m2p7vc.cc,tyjxq5r9t2xwz1.cc
-STEP2_DOMAINS=tyjxbn4w8fgh3.cc,tyjxnf0skf9h.cc
-FINAL_DOMAINS=tyjx7k2m9pqs4.cc,tyjxlh2wyxr9.cc,tyjxhotpzixm.cc
-```
-
-**注意**：`API_SECRET` 必须与 `public/index.html` 中的 `API_SECRET` 一致。
-
-### 4.2 启动本地服务
-
-```bash
-npm run dev
-```
-
-访问 http://localhost:8788
-
-### 4.3 修改前端密钥
-
-部署前需同步修改 `public/index.html` 中的 `API_SECRET`，与 `.dev.vars` 及 CF 环境变量保持一致。
-
----
-
-## 五、环境变量详解
-
-| 变量 | 必填 | 类型 | 说明 |
-|------|------|------|------|
-| API_SECRET | 是 | Secret | 32 字节密钥，前后端必须一致，用于 AES 加解密 |
-| ENTRY_DOMAINS | 是 | Plain text | 主入口域名，逗号分隔，如 tyjx.app,tycg.app |
-| LANDING_DOMAINS | 是 | Plain text | tyjx.com 重定向到的泛域名，逗号分隔 |
-| STEP2_DOMAINS | 是 | Plain text | 最新地址泛域名，逗号分隔，图1 按钮链接 |
-| FINAL_DOMAINS | 是 | Plain text | 最后随机地址泛域名，逗号分隔，图2 可复制地址 |
-| ENTRY_JUMP_URL | 否 | Plain text | 入口页固定跳转地址，不设则随机生成 |
-| ALLOWED_ORIGINS | 否 | Plain text | 允许的 Origin，逗号分隔，空则不校验 |
-
----
-
-## 六、技术栈
-
-- **运行时**：Cloudflare Workers (V8)
-- **加密**：Web Crypto API (AES-256-CBC)
-- **前端**：原生 JS + CryptoJS CDN
+Private.

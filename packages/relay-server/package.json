@@ -1,0 +1,23 @@
+{
+  "name": "@tyjx/relay-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "tyjx-portal 中转/入口/发布页 Node 服务(替代 CF Worker,跑在 VPS):cdn666 → 本服务 → 渲染/302",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "lint": "echo 'lint todo'"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,13 +1,60 @@
 # 依赖
 node_modules/
+**/node_modules/
 
 # 环境变量与敏感信息
 .env
+.env.local
+.env.production
+.env.production.local
+**/.env.production
 .dev.vars
+**/.dev.vars
+
+# 构建产物
+dist/
+build/
+out/
+.next/
+**/dist/
+**/build/
+**/out/
+**/.next/
+
+# relay-server 运行时缓存(本地 + 生产)
+packages/relay-server/.cache/
+
+# 数据库 / 上传 / 运行时数据
+packages/admin-server/src/data/*.db
+packages/admin-server/src/data/*.db-*
+packages/admin-server/src/data/uploads/*
+!packages/admin-server/src/data/uploads/.gitkeep
+packages/admin-server/src/data/video-keys/*.enckey
+
+# luodiye-video 历史 zip / cf-pages 部署包
+packages/luodiye_video/*.zip
+**/*.zip
+
+# SSL 证书与私钥(由 acme.sh 在 VPS 上管理,不入库)
+deploy/ssl/*.key
+deploy/ssl/*.crt
+deploy/ssl/*.pem
+deploy/ssl/*.csr
+**/*.key
+**/*.crt
+**/*.pem
+**/*.csr
+**/*.p12
+**/*.pfx
+
+# pnpm
+.pnpm-store/
 
 # 日志与缓存
 *.log
-.wrangler/
+**/*.log
 
-# 系统文件
+# IDE / 系统
 .DS_Store
+.idea/
+.vscode/

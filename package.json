@@ -1,12 +1,22 @@
 {
   "name": "tyjx-landing",
-  "version": "1.0.0",
-  "description": "天涯精选 - 域名发布落地页",
+  "version": "2.1.0",
+  "private": true,
+  "description": "天涯精选 对外链路:relay-server(VPS Node 中转)+ admin(server/web)+ luodiye-video 真落地页",
   "scripts": {
-    "dev": "wrangler pages dev public --compatibility-date=2024-01-01",
-    "deploy": "wrangler pages deploy public --project-name=tyjx-landing",
-    "deploy:script": "bash deploy.sh"
+    "dev:relay-server": "pnpm --filter @tyjx/relay-server dev",
+    "dev:admin-server": "pnpm --filter @tyjx/admin-server dev",
+    "dev:admin-web": "pnpm --filter @tyjx/admin-web dev",
+    "dev:landing": "pnpm --filter @tyjx/luodiye-video dev",
+    "build": "pnpm -r build",
+    "build:admin-server": "pnpm --filter @tyjx/admin-server build",
+    "build:admin-web": "pnpm --filter @tyjx/admin-web build",
+    "build:landing": "pnpm --filter @tyjx/luodiye-video build",
+    "lint": "pnpm -r lint"
   },
-  "keywords": ["landing", "jump-url", "cloudflare-pages"],
-  "license": "MIT"
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  },
+  "packageManager": "pnpm@9.0.0"
 }

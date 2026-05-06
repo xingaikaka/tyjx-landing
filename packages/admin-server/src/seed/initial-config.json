@@ -1,0 +1,63 @@
+{
+  "domains": {
+    "brandDomains": [
+      "tyjx.app"
+    ],
+    "entryPages": [
+      "tyjxn3k8m2p7vc.cc",
+      "tyjxq5r9t2xwz1.cc"
+    ],
+    "publishPages": [
+      "tyjxbn4w8fgh3.cc",
+      "tyjxnf0skf9h.cc"
+    ],
+    "finalLandings": [
+      "tyjx7k2m9pqs4.cc",
+      "tyjxlh2wyxr9.cc",
+      "tyjxhotpzixm.cc"
+    ],
+    "entryButtonsCount": 2,
+    "publishLinksCount": 2
+  },
+  "portalUI": {
+    "logo": "",
+    "favicon": "",
+    "siteName": "地址发布页",
+    "bookmarkTip": "请 Ctrl+D 收藏本页到浏览器收藏夹回家不迷路",
+    "clickPrompt": "--点击下方按钮进入网站--",
+    "bookmarkBlock": {
+      "line1": "收藏本站永久地址: <brandDomain>, 防止失联!",
+      "line2": "网站域名经常更新, 防止网站打不开",
+      "line3": "请务必收藏此网页, 永久有效!"
+    },
+    "footerNote": [
+      "安卓用户请使用谷歌(Chrome)浏览器访问",
+      "iPhone用户请使用手机自带Safari浏览器访问",
+      "无广告、体验流畅、速度更快"
+    ]
+  },
+  "landing": {
+    "logo": "",
+    "favicon": "",
+    "seo": {
+      "title": "嗨角 - 享受两性世界",
+      "description": "全网首家自带免费VPN，海量短视频、长视频、天涯神贴、擦边短剧、电影，聊天社区圈子，你想要的这里都有",
+      "keywords": "嗨角,免费VPN,短视频,长视频,天涯神贴,擦边短剧,电影,聊天社区"
+    },
+    "backgroundVideo": "",
+    "backgroundVideoPoster": "",
+    "telegramLink": "",
+    "openInstallAppKey": "",
+    "androidApkUrl": "",
+    "androidApkFilename": "",
+    "iosDownloadUrl": "",
+    "downloadButtons": {
+      "ios":     { "label": "苹果手机下载", "enabled": true },
+      "android": { "label": "安卓手机下载", "enabled": true }
+    },
+    "vpnSection": {
+      "title": "全网首家,自带免费VPN",
+      "subtitle": "安全稳定,高速畅享全球网络"
+    }
+  }
+}

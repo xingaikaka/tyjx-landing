@@ -1,0 +1,72 @@
+# Nginx 反代到 tyjx-portal-server :3020
+#
+# 链路:
+#   用户 → cdn666(TLS 终结)→ VPS Nginx :80 → tyjx-portal-server :3020 → SSR / 302
+#
+# 涵盖三类 host(全部反代到同一进程,内部按 X-Forwarded-Host 分类):
+#   1. brandDomain   tyjx.app                              → 302 → 随机 entryPages 子域
+#   2. entryPages    *.tyjxn3k8m2p7vc.cc / *.tyjxq5r9t2xwz1.cc → 渲染入口页(图 1)
+#   3. publishPages  *.tyjxbn4w8fgh3.cc / *.tyjxnf0skf9h.cc    → 渲染发布页(图 2)
+#
+# 不接 finalLandings(*.tyjx7k2m9pqs4.cc / *.tyjxlh2wyxr9.cc / *.tyjxhotpzixm.cc),
+# 那是 luodiye_video 静态托管,继续走 tyjxapp.conf 的正则 server_name 即可。
+#
+# 关键设计:
+#   - 只 listen 80,TLS 在 cdn666 终结;VPS 不维护任何 SSL 证书,零运维
+#   - server_name 用「精确 + 通配」,优先级高于 tyjxapp.conf 的正则 server_name,
+#     避免被那条 ~^.+\.tyjx[a-z0-9_-]+\.cc$ 抢走
+#   - X-Forwarded-Proto 强制 https(用户那侧永远是 https,本机回源是 http)
+#   - 阻断 /admin / /uploads(本服务不该暴露这些)
+#
+# 部署:
+#   sudo cp .../relay.conf.example /etc/nginx/conf.d/tyjx-portal.conf
+#   sudo nginx -t && sudo nginx -s reload
+
+upstream tyjx_portal_backend {
+  server 127.0.0.1:3020;
+  keepalive 32;
+}
+
+server {
+  listen 80;
+  listen [::]:80;
+
+  # 5 个 zone 全列出来:精确 root + 通配子域
+  # 注意:不要包含 finalLandings(tyjx7k2m9pqs4.cc / tyjxlh2wyxr9.cc / tyjxhotpzixm.cc)
+  server_name
+    tyjx.app *.tyjx.app
+    tyjxn3k8m2p7vc.cc *.tyjxn3k8m2p7vc.cc
+    tyjxq5r9t2xwz1.cc *.tyjxq5r9t2xwz1.cc
+    tyjxbn4w8fgh3.cc *.tyjxbn4w8fgh3.cc
+    tyjxnf0skf9h.cc *.tyjxnf0skf9h.cc;
+
+  access_log /var/log/nginx/tyjx-portal.access.log;
+  error_log  /var/log/nginx/tyjx-portal.error.log warn;
+
+  # 防御性:本服务只做 SSR / 302,不应该暴露 admin / 上传相关路径
+  # /api/ 是 relay-server 自己的内部接口(/api/health /api/r /api/jump 等),要放行
+  location ~ ^/(admin|uploads)/ {
+    return 404;
+  }
+
+  location / {
+    proxy_pass http://tyjx_portal_backend;
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host  $host;
+    # 用户那一侧永远是 https(cdn666 终结);本机 → relay-server 是 http
+    proxy_set_header X-Forwarded-Proto https;
+
+    proxy_connect_timeout 3s;
+    proxy_send_timeout    15s;
+    proxy_read_timeout    15s;
+    proxy_next_upstream   error timeout;
+
+    # 中转跳转 / SSR HTML 都不缓存(每次实时生成,带随机抽样)
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+}
