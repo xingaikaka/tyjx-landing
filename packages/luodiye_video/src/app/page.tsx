@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { SiAndroid } from 'react-icons/si'
 import OpenInstallScript from '@/components/OpenInstallScript'
 import BackgroundVideo from '@/components/BackgroundVideo'
@@ -202,18 +202,6 @@ export default function Home() {
   // 后启动的实例会强制 pause 先启动的实例,导致首帧就停。
   const [isDesktop, setIsDesktop] = useState(false)
 
-  // 桌面端 logo / 商务按钮要钉在视频"实际显示区"(contain 后的 letterbox 矩形),
-  // 不是钉在整个视口 — 否则视频左右/上下黑边时这两个角标会飘到黑色区域里。
-  // 计算方法:监听 video.loadedmetadata 拿到真实宽高比,combo window resize,
-  // 算出 contain 后的 left/top/width/height,再以这个 rect 当 logo/按钮的容器。
-  const desktopVideoRef = useRef<HTMLVideoElement>(null)
-  const [desktopVideoRect, setDesktopVideoRect] = useState<{
-    left: number
-    top: number
-    width: number
-    height: number
-  } | null>(null)
-
   useEffect(() => {
     setIsMounted(true)
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
@@ -234,56 +222,6 @@ export default function Home() {
       return () => legacy.removeListener?.(sync)
     }
   }, [])
-
-  /* 桌面:计算视频 contain 后的实际显示矩形,用做 logo / 按钮的参照系。
-   *   - 默认按 16:9(横屏背景视频最常见)算一份 rect → logo 立即可见
-   *   - video metadata 加载完触发 loadedmetadata → 用真实比例校正
-   *   - window resize 也重算
-   *   - 移动端走 cover 全屏,视口 = 视频显示区,不需要这套
-   */
-  useEffect(() => {
-    if (!isDesktop) {
-      setDesktopVideoRect(null)
-      return
-    }
-    const calc = () => {
-      const v = desktopVideoRef.current
-      if (!v) return
-      const elW = v.clientWidth
-      const elH = v.clientHeight
-      if (!elW || !elH) return
-      const vidW = v.videoWidth || 16
-      const vidH = v.videoHeight || 9
-      const vidRatio = vidW / vidH
-      const elRatio = elW / elH
-      let dw: number
-      let dh: number
-      if (vidRatio > elRatio) {
-        dw = elW
-        dh = elW / vidRatio
-      } else {
-        dh = elH
-        dw = elH * vidRatio
-      }
-      setDesktopVideoRect({
-        left: Math.round((elW - dw) / 2),
-        top: Math.round((elH - dh) / 2),
-        width: Math.round(dw),
-        height: Math.round(dh),
-      })
-    }
-    calc()
-    window.addEventListener('resize', calc)
-    const v = desktopVideoRef.current
-    v?.addEventListener('loadedmetadata', calc)
-    // <video> 自带的 resize 事件:像素维度变化时触发(metadata 后会触发一次)
-    v?.addEventListener('resize', calc)
-    return () => {
-      window.removeEventListener('resize', calc)
-      v?.removeEventListener('loadedmetadata', calc)
-      v?.removeEventListener('resize', calc)
-    }
-  }, [isDesktop, config.backgroundVideo])
 
   const downloadButtons = useMemo(() => {
     if (!isMounted) return null
@@ -332,61 +270,63 @@ export default function Home() {
           否则 Android 国产浏览器会因"单 video 实例"限制把先播的那个 pause 掉。
         */}
         {isDesktop ? (
-          // 桌面端:外层占满视口(避免首帧"从小到大"撑开),内层用 desktopVideoRect
-          // 把 logo / 商务按钮钉到视频"实际显示区"(contain 后的 letterbox 矩形)。
-          // 视频用 objectFit:contain,保留原宽高比、不裁剪;两侧/上下黑边由
-          // wrapper background:#000 + 父级 bg-black 自然吃掉。
-          <div className="absolute inset-0">
-            <BackgroundVideo
-              ref={desktopVideoRef}
-              key={`pc-${config.backgroundVideo}`}
-              src={config.backgroundVideo}
-              poster={config.backgroundVideoPoster}
-              assetKey={config.assetAesKey}
-              autoPlay
-              loop
-              playsInline
-              muted
-              className="w-full h-full"
+          // 桌面端:用 CSS 把"视频实际显示区"做成一个**竖版 9:16** 的居中容器,
+          // width/height 由 viewport min() 直接算,纯样式、零 JS、零延迟。
+          //
+          //   width  = min(100vw, 100vh × 9/16)   ← 等高度铺满时,宽 = 高×9/16
+          //   height = min(100vh, 100vw × 16/9)   ← 等宽度铺满时,高 = 宽×16/9
+          //   两者一起夹住,box 始终保持 9:16 且不超出视口
+          //
+          // logo / 商务按钮直接 absolute 在这个容器内,首帧就到位,
+          // 不再依赖 video.loadedmetadata / resize 监听。
+          //
+          // ⚠️ 比例假设:背景视频规格固定为 9:16 竖版(短视频/手机录制规格,
+          // admin 后台上传时按这个标准)。比例改了在这里改 9 / 16 两个常量即可。
+          // 视频自身用 object-fit:cover 兜底,小幅偏差会被裁掉、无可见黑边。
+          <div className="absolute inset-0 grid place-items-center bg-black">
+            <div
+              className="relative"
               style={{
-                objectFit: 'contain',
-                objectPosition: 'center center',
+                width: 'min(100vw, calc(100vh * 9 / 16))',
+                height: 'min(100vh, calc(100vw * 16 / 9))',
               }}
-            />
-
-            {/* logo / 按钮的参照容器:与视频 contain 后的实际显示矩形完全重合 */}
-            {desktopVideoRect && (
-              <div
-                aria-hidden={false}
-                className="absolute pointer-events-none"
+            >
+              <BackgroundVideo
+                key={`pc-${config.backgroundVideo}`}
+                src={config.backgroundVideo}
+                poster={config.backgroundVideoPoster}
+                assetKey={config.assetAesKey}
+                autoPlay
+                loop
+                playsInline
+                muted
+                className="absolute inset-0 w-full h-full"
                 style={{
-                  left: desktopVideoRect.left,
-                  top: desktopVideoRect.top,
-                  width: desktopVideoRect.width,
-                  height: desktopVideoRect.height,
+                  objectFit: 'cover',
+                  objectPosition: 'center center',
                 }}
-              >
-                {config.logo && (
-                  <div className="absolute top-4 left-4 z-40 pointer-events-none">
-                    <div className="pointer-events-auto">
-                      <EncryptedImage
-                        src={config.logo}
-                        assetKey={config.assetAesKey}
-                        alt="Logo"
-                        className="h-16 w-16 object-contain"
-                        priority
-                      />
-                    </div>
-                  </div>
-                )}
+              />
 
-                {config.telegramLink && (
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 z-40 pointer-events-none">
-                    <OfficialCooperationButton link={config.telegramLink} />
+              {config.logo && (
+                <div className="absolute top-4 left-4 z-40 pointer-events-none">
+                  <div className="pointer-events-auto">
+                    <EncryptedImage
+                      src={config.logo}
+                      assetKey={config.assetAesKey}
+                      alt="Logo"
+                      className="h-16 w-16 object-contain"
+                      priority
+                    />
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+
+              {config.telegramLink && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 z-40 pointer-events-none">
+                  <OfficialCooperationButton link={config.telegramLink} />
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <BackgroundVideo
