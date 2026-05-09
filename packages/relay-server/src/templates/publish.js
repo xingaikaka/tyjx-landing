@@ -48,14 +48,27 @@ export function renderPublishPage(runtime) {
 
   const clientJs = `
 (function(){
-  // 同步复制:click handler 当下立即尝试,不用 Promise(微信/抖音/百度 webview 异步会丢失用户激活态)
+  // 同步复制:click handler 当下立即尝试,不用 await(微信/抖音/百度 webview 异步会丢失用户激活态)
+  //
+  // 顺序设计(iOS bug 教训):
+  //   ① navigator.clipboard.writeText 优先 — iOS 13.4+/Android Chrome/桌面全支持,
+  //      HTTPS + click handler 内部触发可靠;Promise 派发完写操作即返回,无需 await。
+  //   ② execCommand('copy') 兜底 — 老 Android webview / 微信 X5(老版)/ UC / 360。
+  //
+  // ⚠️ 历史坑:execCommand 在 iOS 上对"隐身"元素(opacity:0 / width:1px / display:none)
+  //   会**返回 true 但实际不写剪贴板**,造成"提示成功但粘贴为空"。textarea 必须用
+  //   left:-9999px 移到屏外、保留正常尺寸,而不是 opacity:0。
   function copySync(text){
-    // ① execCommand('copy') 兼容性最广,iOS / 微信 / QQ / 抖音 大多支持
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text);
+        return true;
+      }
+    }catch(e){}
     var ta=document.createElement('textarea');
     ta.value=text;
     ta.setAttribute('readonly','');
-    ta.contentEditable='true';
-    ta.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:16px';
+    ta.style.cssText='position:fixed;left:-9999px;top:0;font-size:16px';
     document.body.appendChild(ta);
     var ok=false;
     try{
@@ -71,14 +84,7 @@ export function renderPublishPage(runtime) {
       ok=document.execCommand('copy');
     }catch(e){}
     document.body.removeChild(ta);
-    if(ok)return true;
-    try{
-      if(navigator.clipboard&&navigator.clipboard.writeText){
-        navigator.clipboard.writeText(text);
-        return true;
-      }
-    }catch(e){}
-    return false;
+    return ok;
   }
   // 兜底:打开复制助手浮层 —— 不依赖任何 clipboard API,只让浏览器原生选中文本,
   // 用户长按能拿到原生"复制"菜单。百度 App / UC / QQ 浏览器等都能用。
