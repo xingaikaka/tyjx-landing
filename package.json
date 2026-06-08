@@ -1,0 +1,24 @@
+{
+  "name": "tyjx-landing",
+  "version": "2.0.0",
+  "private": true,
+  "description": "天涯精选 对外链路:tyjx-portal Worker + admin (server/web) + luodiye-video 真落地页",
+  "scripts": {
+    "dev:worker": "pnpm --filter @tyjx/worker dev",
+    "dev:admin-server": "pnpm --filter @tyjx/admin-server dev",
+    "dev:admin-web": "pnpm --filter @tyjx/admin-web dev",
+    "dev:landing": "pnpm --filter @tyjx/luodiye-video dev",
+    "build": "pnpm -r build",
+    "build:worker": "pnpm --filter @tyjx/worker build",
+    "build:admin-server": "pnpm --filter @tyjx/admin-server build",
+    "build:admin-web": "pnpm --filter @tyjx/admin-web build",
+    "build:landing": "pnpm --filter @tyjx/luodiye-video build",
+    "deploy:worker": "pnpm --filter @tyjx/worker deploy",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

@@ -1,0 +1,39 @@
+# 依赖
+node_modules/
+**/node_modules/
+
+# 构建产物（保留静态产物用于部署）
+packages/worker/dist/
+
+# 数据库和数据文件（敏感）
+data/portal.db
+data/portal.db-wal
+data/portal.db-shm
+data/*.db
+data/uploads/
+logs/
+
+# 环境变量（敏感）
+.env
+.env.local
+packages/**/.env
+packages/**/.env.local
+
+# Next.js 缓存
+**/.next/cache/
+**/.next/trace
+
+# 系统文件
+.DS_Store
+*.swp
+*.swo
+
+# 额外排除
+data/
+**/data/*.db
+**/data/*.db-wal
+**/data/*.db-shm
+**/data/uploads/
+**/data/video-keys/
+packages/luodiye_video/.env.production
+packages/luodiye_video/.env.development

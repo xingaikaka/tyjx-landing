@@ -1,0 +1,26 @@
+name = "tyjx-portal"
+main = "src/index.js"
+compatibility_date = "2025-04-01"
+# 必须保持 true:cdn666 / 腾讯 EdgeOne 等第三方 CDN 都是回源到
+# tyjx-portal.<subdomain>.workers.dev,关闭子域 = 全站 404。
+workers_dev = true
+
+# 部署后用 wrangler secret put 注入,不要写在 toml 里:
+#   wrangler secret put ADMIN_BASE_URL
+#   wrangler secret put PORTAL_API_SECRET
+#   wrangler secret put FALLBACK_POOL          # (可选)
+[vars]
+RUNTIME_CACHE_TTL = "30"
+
+# KV: 缓存 admin runtime,避免每次请求都打 admin
+# 用前需要 wrangler kv:namespace create RUNTIME_KV,把 id 填进来
+[[kv_namespaces]]
+binding = "RUNTIME_KV"
+id = "c27f7d023bca44ec8513f27e5b8bd998"  # tyjx-portal-runtime
+
+# 路由由 admin 域池配置,部署后用 dashboard / wrangler 单独绑定:
+#   wrangler deployments routes 见 docs/deployment.md
+# 推荐用通配符路由:
+#   tyjx.app/*
+#   *.tyjxXXXXXX.cc/*
+#   等等

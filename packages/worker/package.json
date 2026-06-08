@@ -1,0 +1,15 @@
+{
+  "name": "@tyjx/worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "tyjx-portal CF Worker:tyjx.app + 入口页面 + 发布页面",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local --port 8787",
+    "deploy": "wrangler deploy",
+    "lint": "echo 'lint todo'"
+  },
+  "devDependencies": {
+    "wrangler": "^3.78.0"
+  }
+}
