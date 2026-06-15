@@ -3,7 +3,7 @@
 > admin-server 上传图片/视频/APK 时,可选两种后端:
 >
 > - `local`(默认): 写本机磁盘,nginx `/uploads/` 反代
-> - `r2`: 写 Cloudflare R2,落地页/Worker 通过腾讯 EdgeOne CDN 访问(回源 R2 公网域)
+> - `r2`: 写 Cloudflare R2,落地页/relay-server 通过腾讯 EdgeOne CDN 访问(回源 R2 公网域)
 >
 > 本文说明 r2 后端的搭建步骤。
 
@@ -34,7 +34,7 @@
 ## 链路
 
 ```
-[luodiye_video / tyjx-portal Worker]
+[luodiye_video / relay-server(入口/发布页)]
    │  <img src="https://tyjx.calculus.xin/tyjx/uploads/abc.png">
    ▼
 [腾讯云 EdgeOne CDN]    tyjx.calculus.xin (与 tyapp.app 的 cdn.calculus.xin 区分,同账号同桶)

@@ -1,7 +1,7 @@
 /**
  * tyjx-portal admin-server 主入口
  *
- *   /api/portal/*       公开 API(Worker / luodiye_video 拉)
+ *   /api/portal/*       公开 API(relay-server / luodiye_video 拉)
  *   /api/admin/*        私有 API(JWT 认证,admin UI 用)
  *   /uploads/*          媒体静态服务
  *   /healthz            健康检查
@@ -27,7 +27,7 @@ app.set('trust proxy', 1);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
-// CORS:对公开 API 必须开,否则 Worker / 落地页拉不到
+// CORS:对公开 API 必须开,否则 relay-server / 落地页拉不到
 app.use(
   cors({
     origin: (origin, cb) => {

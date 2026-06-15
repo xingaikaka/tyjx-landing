@@ -1,22 +1,24 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { dbgGetAll, dbgSubscribe, isDbgEnabled, DbgEntry } from '@/lib/dbgBus'
+import { useEffect, useState } from 'react'
+import { dbgGetAll, dbgSubscribe, installConsoleCapture, isDbgEnabled, DbgEntry } from '@/lib/dbgBus'
 
 /**
- * ?dbg=1 时显示的浮层日志面板 — 实时监控主页 BackgroundVideo 的 hls.js / video 事件。
- *
- * 不传 ?dbg=1 时直接 return null,生产环境零开销。
+ * 悬浮调试面板:仅 ?dbg=1（或 ?debug=1）时显示,正常访问看不到、零开销。
+ *   - 默认收起,只显示标题栏「DBG」
+ *   - 点击展开查看日志 + 复制按钮
  */
 export default function DebugOverlay() {
-  const [open, setOpen] = useState(true)
+  const [enabled, setEnabled] = useState(false)
+  const [open, setOpen] = useState(false)
   const [logs, setLogs] = useState<DbgEntry[]>([])
   const [copyState, setCopyState] = useState<'idle' | 'ok' | 'fail'>('idle')
-  const enabled = useRef(false)
 
   useEffect(() => {
-    enabled.current = isDbgEnabled()
-    if (!enabled.current) return
+    if (!isDbgEnabled()) return
+    setEnabled(true)
+    // ?dbg=1 时开启 console 捕获:OpenInstall SDK 等第三方 console 日志进 DBG 面板
+    installConsoleCapture()
     setLogs(dbgGetAll())
     return dbgSubscribe((e) => {
       setLogs((prev) => {
@@ -27,7 +29,7 @@ export default function DebugOverlay() {
     })
   }, [])
 
-  if (!enabled.current) return null
+  if (!enabled) return null
 
   const fmt = (ts: number) => {
     const d = new Date(ts)

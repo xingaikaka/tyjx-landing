@@ -13,7 +13,7 @@
  *   del(key, backend):     按记录的 backend 删除(兼容老 local 文件)
  *   localFsPath(key):      仅 backend=local 时,返回本地文件绝对路径(用于 sharp pre-process)
  *
- * URL 写入数据库后是终态,Worker / luodiye_video 直接 fetch,不再经 admin-server。
+ * URL 写入数据库后是终态,relay-server / luodiye_video 直接 fetch,不再经 admin-server。
  */
 
 import path from 'node:path';

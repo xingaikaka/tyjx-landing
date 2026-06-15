@@ -1,6 +1,6 @@
 # @tyjx/relay-server  →  线上名 `tyjx-portal-server`
 
-VPS 上跑的 **品牌门户 / 入口 / 发布** Node 服务,**替代** Cloudflare Worker `tyjx-portal`。
+VPS 上跑的 **品牌门户 / 入口 / 发布** 中转 Node 服务(Express + 标准 Web Request)。
 
 > 角色记忆:这是 **tyjx.app**(分享/品牌门户,用户手动复制粘贴)体系的中转层。
 > 不要和 `dp/tyjx-relay-server`(tyapp.app 广告投放体系,二跳自动 302)搞混。
@@ -34,19 +34,6 @@ VPS 上跑的 **品牌门户 / 入口 / 发布** Node 服务,**替代** Cloudfla
 - 返回字段(解密后):`{ ts, domains: { brandDomains, entryPages, publishPages, finalLandings, entryButtonsCount, publishLinksCount }, portalUI: {...} }`
 
 `PORTAL_API_SECRET` 必须与 admin `.env` 完全一致(64 字符)。部署脚本会从 admin 同步过来。
-
-## 与原 CF Worker 的关系
-
-业务逻辑、URL、HTML 模板 **100% 1:1 移植**。差异只有运行时:
-
-| 维度 | CF Worker(`@tyjx/worker`) | 本包 |
-|---|---|---|
-| 配置缓存 | Cloudflare KV | 本地文件 `.cache/runtime.json` + 内存 |
-| 拉 admin | `fetch()` | 同 |
-| 解密协议 | 同 | 同 |
-| HTML 模板 | `templates/{entry,publish,layout}.js` | 字节相同 |
-| 入口 | `export default { fetch }` | Express + Web Request shim |
-| 部署 | wrangler | rsync + PM2 + Nginx |
 
 ## 运行
 
@@ -143,12 +130,3 @@ ssh root@43.128.4.201 'cd /opt/tyjx-portal-server && pm2 reload tyjx-portal-serv
 ```
 
 99%+ 请求 0 ms 内存命中。admin 挂 5 分钟不影响线上。
-
-## 与 CF Worker 的并存(灰度期间)
-
-切换期间双跑:
-- Worker `tyjx-portal` 仍接 CF Workers route 上的流量
-- 本服务接 cdn666 → VPS 的流量
-- 两者读同一个 admin,配置一致
-
-完全切干净 24h 后,删 `packages/worker` 整个目录,Worker route / KV 也下线。

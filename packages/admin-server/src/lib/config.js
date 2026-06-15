@@ -43,7 +43,7 @@ const config = {
     password: process.env.ADMIN_DEFAULT_PASSWORD || 'admin123456',
   },
 
-  // Worker 通信
+  // relay-server 通信
   portalApiSecret: required(
     'PORTAL_API_SECRET',
     'dev-only-portal-api-secret-32bytes-please-replace!'

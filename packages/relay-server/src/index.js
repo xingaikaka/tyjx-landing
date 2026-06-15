@@ -2,21 +2,20 @@
  * relay-server 入口
  *
  * 设计思路:
- *   核心 handler.js 用标准 Web API(Request/Response/fetch/crypto.subtle 全 Node18+ 原生),
- *   等价于一份"在 Node 上跑的 CF Worker",最大化复用 worker 包的 lib + templates。
+ *   核心 handler.js 用标准 Web API(Request/Response/fetch/crypto.subtle 全 Node18+ 原生)。
  *   本文件只做两件事:
  *     1. 启动 Express 监听 HTTP
  *     2. Express req → Web Request,Web Response → Express res 的双向适配
  *
  * 部署:
  *   生产:Nginx(443/80) → 本服务(127.0.0.1:3020)
- *   - tyapp.app(品牌入口域)→ 302 到随机 entryPage
- *   - *.tyjx7k2m9pqs4.cc / *.tyjxhotpzixm.cc(entryPages)→ 渲染图1
- *   - *.tyjxlh2wyxr9.cc 之外的域 / publishPages 池里的域 → 渲染图2(若配置了)
+ *   - tyjx.app(brandDomain)→ 302 到随机 entryPage 子域
+ *   - *.entryPages 池(*.tyjxn3k8m2p7vc.cc 等)→ 渲染入口页(图1)
+ *   - *.publishPages 池(*.tyjxbn4w8fgh3.cc 等)→ 渲染发布页(图2)
  *
  *   本地 dev:
  *     pnpm --filter @tyjx/relay-server dev
- *     curl -H 'Host: tyapp.app' http://127.0.0.1:3020/
+ *     curl -H 'Host: tyjx.app' http://127.0.0.1:3020/
  */
 
 import 'dotenv/config';

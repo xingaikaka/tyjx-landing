@@ -42,7 +42,7 @@ export default function DomainsPage() {
       const saved = await domainsApi.put(data);
       setData(saved);
       setOrig(saved);
-      toast.success('已保存,Worker 将在 30 秒内生效');
+      toast.success('已保存,中转层将在 30 秒内生效');
     } catch (e) {
       toast.error((e as Error).message || '保存失败');
     } finally {
@@ -68,7 +68,7 @@ export default function DomainsPage() {
     <div className="card">
       <h2 className="page-title">域池管理</h2>
       <p className="page-desc">
-        管理品牌域、入口页、发布页、真落地页 4 类域池。保存后 Worker 与落地页会在 30 秒内自动拉到新配置。
+        管理品牌域、入口页、发布页、真落地页 4 类域池。保存后中转层与落地页会在 30 秒内自动拉到新配置。
       </p>
 
       <DomainListEditor

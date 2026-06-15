@@ -35,7 +35,6 @@ export function isDbgEnabled(): boolean {
 }
 
 export function dbgPush(src: string, level: DbgEntry['level'], msg: string) {
-  if (!isDbgEnabled()) return
   const entry: DbgEntry = { ts: Date.now(), src, level, msg }
   buffer.push(entry)
   if (buffer.length > MAX_BUFFER) buffer.shift()
@@ -51,6 +50,48 @@ export function dbgSubscribe(l: Listener): () => void {
 
 export function dbgGetAll(): DbgEntry[] {
   return buffer.slice()
+}
+
+/**
+ * 拦截全局 console,把 log/info/warn/error 原样转发到 dbg 面板。
+ *
+ * 这样 OpenInstall SDK 等第三方库自己打的 console 日志,无需 ?eruda=1
+ * 就能直接出现在常驻 DBG 面板里。
+ *
+ * 幂等:重复调用只装一次;dbgPush 内部不调 console,不会递归。
+ */
+let consoleCaptured = false
+export function installConsoleCapture() {
+  if (consoleCaptured || typeof window === 'undefined') return
+  consoleCaptured = true
+
+  const fmt = (args: unknown[]) =>
+    args
+      .map((a) => {
+        if (typeof a === 'string') return a
+        if (a instanceof Error) return `${a.name}: ${a.message}`
+        try { return JSON.stringify(a) } catch { return String(a) }
+      })
+      .join(' ')
+
+  const levels: Array<[keyof Console, DbgEntry['level']]> = [
+    ['log', 'info'],
+    ['info', 'info'],
+    ['warn', 'warn'],
+    ['error', 'error'],
+  ]
+
+  levels.forEach(([method, level]) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const orig = (console as any)[method]?.bind(console)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(console as any)[method] = (...args: unknown[]) => {
+      try { orig?.(...args) } catch { /* noop */ }
+      try { dbgPush('console', level, fmt(args)) } catch { /* noop */ }
+    }
+  })
+
+  dbgPush('console', 'ok', 'console capture installed')
 }
 
 /**

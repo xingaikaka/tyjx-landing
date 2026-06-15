@@ -7,14 +7,14 @@
  *  - 本地文件:    跨进程重启兜底(进程崩溃后读到上一次成功值)
  *  - admin:      真源,失败时回退本地文件 → FALLBACK_POOL → 硬编码空池
  *
- * 与 worker 版区别:
- *  - 用 fs 替代 Cloudflare KV
+ * 关键点:
+ *  - 本地文件做跨进程重启兜底
  *  - admin 拉取加超时控制(避免 admin 卡住时全站雪崩)
  *  - in-flight dedup:多请求并发同时刷新只会发出 1 个 fetch
  *  - stale-while-revalidate:命中过期值时立即返回旧值并后台刷新
  *
  * 与 admin-server 的 lib/crypto.js 完全对齐(<iv hex>:<ciphertext hex>),
- * 复用 worker/src/lib/crypto.js(Web Crypto,Node 18+ 原生支持)。
+ * 用 ./crypto.js(Web Crypto,Node 18+ 原生支持)解密。
  */
 import fs from 'node:fs';
 import path from 'node:path';

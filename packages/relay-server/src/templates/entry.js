@@ -9,12 +9,15 @@
 
 import { renderShell } from './layout.js';
 import { pickRandomN } from '../lib/router.js';
-import { esc, randomSubdomain } from '../lib/util.js';
+import { esc, randomSubdomain, channelQuery } from '../lib/util.js';
 
-export function renderEntryPage(runtime) {
+export function renderEntryPage(runtime, channelCode = '') {
   const { domains, portalUI } = runtime;
   const n = Math.max(1, Math.min(20, domains.entryButtonsCount || 2));
   const brand = (domains.brandDomains && domains.brandDomains[0]) || '';
+
+  // 渠道码透传到发布页:每个"最新地址"按钮都带上,下一跳继续往下传
+  const q = channelQuery(channelCode);
 
   // 优先用 publishPages,空时退化到 brandDomain(自跳让用户重抽,避免死链)
   const pool = domains.publishPages.length > 0 ? domains.publishPages : domains.brandDomains;
@@ -26,7 +29,7 @@ export function renderEntryPage(runtime) {
       picked.push('');
       continue;
     }
-    picked.push(`https://${randomSubdomain()}.${base}/`);
+    picked.push(`https://${randomSubdomain()}.${base}/${q}`);
   }
 
   // 不留空的池子(全部域都没配置时)→ 友好降级为占位

@@ -134,7 +134,7 @@ export const mediaApi = {
   ) => {
     const fd = new FormData();
     fd.append('file', file);
-    // plain=1: 跳过 AES-GCM 加密,适用于 portalUI.logo / favicon 等 Worker 直接 <img src>
+    // plain=1: 跳过 AES-GCM 加密,适用于 portalUI.logo / favicon 等中转层直接 <img src>
     // 渲染的资产(浏览器无法解密 .enc 密文)。
     const url = opts?.plain ? '/api/admin/media?plain=1' : '/api/admin/media';
     return http

@@ -296,7 +296,7 @@ async function handleSimpleAsset(req, res, original) {
   // 因为浏览器通过 <link rel="icon" href> 直链加载,不能解密。
   const isFavicon = isFaviconMime(mime);
 
-  // ?plain=1 强制明文(用于 portalUI.logo 等 Worker 直接 <img src> 渲染的资产):
+  // ?plain=1 强制明文(用于 portalUI.logo 等 relay-server 直接 <img src> 渲染的资产):
   //   浏览器收到 .enc 二进制无法识别图片格式,所以这类图必须明文。
   //   走 sharp 压缩,但**不加密 + URL 不带 .enc**,跟 favicon 同等待遇。
   const forcePlain = req.query?.plain === '1' || req.query?.plain === 'true';

@@ -28,19 +28,16 @@
 ```
 tyjx-landing/
 ├── packages/
-│   ├── relay-server/    tyjx-portal-server(VPS Node 中转层,替代 CF Worker)
+│   ├── relay-server/    tyjx-portal-server(VPS Node 中转层)
 │   ├── admin-server/    admin 后端(Express + SQLite + JWT + R2 + HLS 转码)
 │   ├── admin-web/       admin 前端(React + Vite + 横向 4tab)
 │   └── luodiye_video/   真落地页(Next.js, host ∈ finalLandings)
 ├── deploy/              nginx / pm2 / acme.sh 脚本
-├── docs/                架构 + 部署 + 运维文档
-└── _legacy/             旧 CF Pages / Worker 代码(归档,不再维护)
+└── docs/                架构 + 部署 + 运维文档
 ```
 
-> **架构变更(2026-05)**:已从 Cloudflare Worker 迁移到 VPS Node 中转层
-> (`packages/relay-server` → 部署为 `tyjx-portal-server`,见 [`packages/relay-server/README.md`](packages/relay-server/README.md))。
-> 所有 5 个 zone(brand + entry×2 + publish×2)的请求由 cdn666 → VPS:80 → Node:3020 处理,
-> 不再走 Cloudflare Worker / KV。
+> **中转层**:所有 5 个 zone(brand + entry×2 + publish×2)的请求由 cdn666 → VPS:80 → Node:3020
+> (`packages/relay-server` → 部署为 `tyjx-portal-server`,见 [`packages/relay-server/README.md`](packages/relay-server/README.md))处理。
 
 ---
 

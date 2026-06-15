@@ -10,12 +10,15 @@
  */
 
 import { renderShell } from './layout.js';
-import { esc, randomSubdomain } from '../lib/util.js';
+import { esc, randomSubdomain, channelQuery } from '../lib/util.js';
 
-export function renderPublishPage(runtime) {
+export function renderPublishPage(runtime, channelCode = '') {
   const { domains, portalUI } = runtime;
   const n = Math.max(1, Math.min(20, domains.publishLinksCount || 2));
   const brand = (domains.brandDomains && domains.brandDomains[0]) || '';
+
+  // 渠道码拼进用户最终复制的地址,落地页据此做渠道归因(OpenInstall 等)
+  const q = channelQuery(channelCode);
 
   const pool = domains.finalLandings;
   const picked = [];
@@ -25,7 +28,7 @@ export function renderPublishPage(runtime) {
       picked.push('');
       continue;
     }
-    picked.push(`https://${randomSubdomain()}.${base}/`);
+    picked.push(`https://${randomSubdomain()}.${base}/${q}`);
   }
 
   const rows = picked.length === 0 || picked.every((u) => !u)

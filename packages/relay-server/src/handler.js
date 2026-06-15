@@ -1,9 +1,8 @@
 /**
- * 中转/入口/发布 核心 Handler(从 worker/src/index.js 1:1 移植)
+ * 中转/入口/发布 核心 Handler
  *
  * 接受标准 Web Request,返回标准 Web Response。
- * Node 18+ 原生支持 Request / Response / fetch / crypto.subtle,
- * 所以 worker 端的 lib + templates 直接复用,逻辑完全一致。
+ * Node 18+ 原生支持 Request / Response / fetch / crypto.subtle。
  *
  * 路由策略:
  *   - host 命中 brandDomains      → 302 → 随机 entryPage 子域(图1)
@@ -14,7 +13,7 @@
  *
  * 注意 Host 选择(pickEffectiveHost):
  *   入站可能是直连 / 走 cdn666 / 走 nginx,我们要选最反映"用户真实访问域"的那个。
- *   优先级:X-Forwarded-Host > Host > url.hostname,跳过 *.workers.dev / *.localhost。
+ *   优先级:X-Forwarded-Host > Host > url.hostname,跳过 *.localhost。
  */
 
 import { getRuntime, forceRefresh, inspectCache } from './lib/runtime.js';
@@ -25,6 +24,8 @@ import {
   notFound,
   redirect,
   randomSubdomain,
+  sanitizeChannelCode,
+  channelQuery,
 } from './lib/util.js';
 import { renderEntryPage } from './templates/entry.js';
 import { renderPublishPage } from './templates/publish.js';
@@ -58,19 +59,23 @@ export async function handleRequest(req) {
     const runtime = await getRuntime();
     const cls = classifyHost(host, runtime.domains);
 
+    // 渠道码:入口域(tyjx.app?channelCode=xxx)带入,逐跳透传到用户最终复制的地址
+    const channelCode = sanitizeChannelCode(url.searchParams.get('channelCode'));
+
     if (cls === 'brand') {
       const next = pickRandom(runtime.domains.entryPages);
       if (!next) return notFound('No entry pages configured');
       // 入口/发布池都是泛域名 + 灰云 / 第三方 CDN,zone apex 没记录 → 加随机子域
-      return redirect(`${scheme}//${randomSubdomain()}.${next}/`, 302);
+      // 渠道码透传给入口页,后续每跳继续往下带
+      return redirect(`${scheme}//${randomSubdomain()}.${next}/${channelQuery(channelCode)}`, 302);
     }
 
     if (cls === 'entry') {
-      return htmlResponse(renderEntryPage(runtime));
+      return htmlResponse(renderEntryPage(runtime, channelCode));
     }
 
     if (cls === 'publish') {
-      return htmlResponse(renderPublishPage(runtime));
+      return htmlResponse(renderPublishPage(runtime, channelCode));
     }
 
     return notFound(`Unknown host: ${host}`);
@@ -167,7 +172,7 @@ function clampInt(s, min, max) {
  *   - Host header:CDN 没设 X-Forwarded-Host 但保留了原 Host,也用它
  *   - url.hostname:直连(无中间 CDN)时用
  *
- * 任何看着像 *.workers.dev / localhost 的都跳过(那是 CDN 回源的目标域,不是用户感知的)。
+ * 任何看着像 localhost 的都跳过(那是回源的目标域,不是用户感知的)。
  * 含端口的 (:8080) 会被截掉。
  */
 function pickEffectiveHost(xfh, hostHeader, urlHost) {
@@ -179,7 +184,6 @@ function pickEffectiveHost(xfh, hostHeader, urlHost) {
       .trim()
       .split(':')[0];  // 去 port
     if (!h) continue;
-    if (h.endsWith('.workers.dev')) continue;
     if (h === 'localhost' || h.endsWith('.localhost')) continue;
     return h;
   }

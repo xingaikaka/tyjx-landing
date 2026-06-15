@@ -1,7 +1,7 @@
 /**
- * 公开 API:供 Worker / luodiye_video 拉取,无需登录。
+ * 公开 API:供 relay-server / luodiye_video 拉取,无需登录。
  *
- *  GET /api/portal/runtime              → AES 加密的 { domains, portalUI }      (Worker 拉)
+ *  GET /api/portal/runtime              → AES 加密的 { domains, portalUI }      (relay-server 拉)
  *  GET /api/portal/landing/config       → 明文的 landing 配置                    (落地页拉)
  *  GET /api/portal/m3u8/:id             → 改写过 KEY URI 的真 m3u8              (落地页 hls.js 拉)
  *  GET /api/portal/video-key-raw/:id    → 16 字节 AES-128 raw key(二进制)      (hls.js 拉)
@@ -30,9 +30,9 @@ const router = Router();
 
 /**
  * GET /api/portal/runtime
- * Worker 拉:返回加密包。响应体是纯文本(AES "iv:cipher" 格式)。
+ * relay-server 拉:返回加密包。响应体是纯文本(AES "iv:cipher" 格式)。
  *
- * 仅返回 Worker 需要的字段(domains + portalUI),landing 不放这里(那是 luodiye_video 的事)。
+ * 仅返回 relay-server 需要的字段(domains + portalUI),landing 不放这里(那是 luodiye_video 的事)。
  */
 router.get('/runtime', (req, res) => {
   const domains = configRepo.get('domains', {});

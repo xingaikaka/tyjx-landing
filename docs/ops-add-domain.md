@@ -2,14 +2,14 @@
 
 按域池类型选对应章节。
 
-> ⚠️ **2026-05 架构变更**:中转层不再是 Cloudflare Worker,而是 VPS Node (relay-server :3020)。
-> 加 brand / entry / publish 域的"绑 Worker route"步骤已**全部作废**,改为:
+> **中转层是 VPS Node(relay-server :3020)**。加 brand / entry / publish 域的通用步骤:
 > 1. 在 admin 后台域池里加上新域(写库)
-> 2. 在 cdn666 把新域指向 VPS(回源 IP:80)
-> 3. 在 VPS Nginx `/etc/nginx/conf.d/tyjx-portal.conf` 的 `server_name` 列表里追加新域
->    (`<root>` + `~^.+\.<root>$`),`nginx -s reload`
-> 4. relay-server 内存缓存 30s 自动刷新(或调 `POST /api/internal/_reload`)
-> 加 finalLanding 域的步骤不变(独立 Nginx 静态服务)。
+> 2. 在 cdn666 把新域指向 VPS(回源 IP:80/443)
+> 3. 在 VPS Nginx `/etc/nginx/conf.d/tyjx-portal.conf`(或对应站点配置)的 `server_name`
+>    列表里追加新域(`<root>` + `*.<root>`),`nginx -s reload`
+> 4. relay-server 内存缓存 `RUNTIME_CACHE_TTL` 秒自动刷新(或调 `GET /api/_reload?token=...`)
+>
+> 加 finalLanding 域的步骤独立(Nginx 静态服务,不经 relay-server)。
 
 ---
 
@@ -49,7 +49,7 @@ EOF
 sudo nginx -t && sudo systemctl reload nginx
 
 # 5. admin 后台 → 域池管理 → 真落地池 → 添加 "tyjxNEW.cc" → 保存
-#    (Worker 30 秒内自动拉到新池,生效)
+#    (relay-server 缓存 TTL 内自动拉到新池,生效)
 ```
 
 ### 自动化(可选,Phase 7)
@@ -58,7 +58,7 @@ admin-server 可以集成 1 个"加域"流程,把上面 1~5 全部自动化(需�
 
 ---
 
-## 加 entryPages / publishPages 域(Worker 路由)
+## 加 entryPages / publishPages 域(relay-server 路由)
 
 **用例**:扩充入口/发布泛域池。
 
@@ -66,17 +66,16 @@ admin-server 可以集成 1 个"加域"流程,把上面 1~5 全部自动化(需�
 # 1. 域名注册
 
 # 2. CF DNS:
-#    把整个 zone 加进 CF
-#    DNS 默认就有 *.<域>.cc 解析(因为我们要 Worker route 接管,具体不需要 A 记录)
-#    实际只要 zone 加到 CF + Worker route 配上即可
+#    把整个 zone 加进 CF,加 A / CNAME 记录,橙云代理(走 cdn666 回源 VPS)
+#    A  tyjxNEW.cc    → <VPS IP>   橙云
+#    A  *.tyjxNEW.cc  → <VPS IP>   橙云
 
-# 3. CF Worker route(在 CF Dashboard 或 wrangler.toml):
-#    *.tyjxNEW.cc/*                   → tyjx-portal Worker
-#    tyjxNEW.cc/*                     → tyjx-portal Worker
+# 3. VPS Nginx tyjx-portal.conf 的 server_name 追加:
+#    tyjxNEW.cc *.tyjxNEW.cc   → proxy_pass relay-server :3020
+#    nginx -t && nginx -s reload
 
 # 4. admin 后台 → 域池管理 → 入口/发布池 → 添加 → 保存
-
-# 不需要服务器操作(因为这层全在 CF Worker)
+#    (relay-server 缓存 TTL 内自动生效)
 ```
 
 ---
@@ -88,13 +87,12 @@ admin-server 可以集成 1 个"加域"流程,把上面 1~5 全部自动化(需�
 ```bash
 # 1. 注册备用域
 
-# 2. CF 加 zone
+# 2. CF 加 zone,A 记录橙云代理 → <VPS IP>(走 cdn666 回源)
 
-# 3. CF Worker route:
-#    tyjx.vip/*  → tyjx-portal Worker
+# 3. VPS Nginx tyjx-portal.conf 的 server_name 追加:tyjx.vip *.tyjx.vip → relay-server :3020
+#    nginx -t && nginx -s reload
 
-# 4. admin 后台 → 暂不放主品牌域字段(只 1 个 brandDomain)
-#    需要切换时,改 brandDomain 字段
+# 4. admin 后台 → 改 brandDomain 字段为备用域(只 1 个生效 brandDomain)
 ```
 
 ---
@@ -105,7 +103,7 @@ admin-server 可以集成 1 个"加域"流程,把上面 1~5 全部自动化(需�
 
 ```bash
 # 1. admin 后台 → 域池管理 → 真落地池 → 删除被封域 → 保存
-# 2. 30 秒内 Worker 不再返回这个域,新用户复制粘贴拿到的是其他域
+# 2. 缓存 TTL 内 relay-server 不再返回这个域,新用户复制粘贴拿到的是其他域
 # 3. 已经粘贴打开旧域的用户:旧域被封 → 用户刷新 → 看到错误,转告 tyjx.app 重来
 ```
 
@@ -113,8 +111,8 @@ admin-server 可以集成 1 个"加域"流程,把上面 1~5 全部自动化(需�
 
 ```bash
 # 1. admin 后台 → 域池管理 → 删除被封域 → 保存
-# 2. 30 秒内 Worker 不再 302 到这个域
-# 3. 注:CF Worker route 即使 DNS 仍通,Worker 不再处理这个 host 也可以删 route
+# 2. 缓存 TTL 内 relay-server 不再 302 / 渲染这个域
+# 3. 可选:在 nginx server_name 与 cdn666 里也摘掉该域
 ```
 
 ### tyjx.app 主域被风控
@@ -122,6 +120,6 @@ admin-server 可以集成 1 个"加域"流程,把上面 1~5 全部自动化(需�
 ```bash
 # 1. 切换 admin 配置 brandDomain → 备用域(如 tyjx.vip)
 # 2. 通知运营在 APP / 推广物料里把 tyjx.app 改成 tyjx.vip
-# 3. tyjx.app 老链接仍然能用(只要 CF Worker 还在,就还会跳 entry pool)
+# 3. tyjx.app 老链接仍然能用(只要 DNS + relay-server 还在,就还会跳 entry pool)
 #    只是不再作为推荐永久域
 ```

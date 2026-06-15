@@ -92,7 +92,7 @@ export function validatePortalUI(body) {
     ok: true,
     data: {
       logo: str(p.logo, 2000),
-      // 浏览器 tab favicon(明文存储,Worker 直接 <link rel=icon> 渲染)
+      // 浏览器 tab favicon(明文存储,relay-server 直接 <link rel=icon> 渲染)
       favicon: str(p.favicon, 2000),
       siteName: str(p.siteName, 200),
       bookmarkTip: str(p.bookmarkTip, 500),

@@ -1,5 +1,5 @@
 /**
- * tyjx-portal-server PM2 配置(承接 Cloudflare Worker tyjx-portal 的 VPS 版)
+ * tyjx-portal-server PM2 配置(tyjx.app 中转层,跑在 VPS)
  *
  * 命名:
  *   - 进程名 tyjx-portal-server,避开已存在的 tyjx-relay-server(tyapp.app 用,在 :3030)

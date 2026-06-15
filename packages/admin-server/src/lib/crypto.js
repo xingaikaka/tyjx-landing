@@ -3,8 +3,8 @@
  * 格式: <iv hex>:<ciphertext hex>
  *
  * 用途:
- *   - admin-server 给 Worker 返回 runtime 数据时加密
- *   - Worker 端用同一个 secret 解密
+ *   - admin-server 给 relay-server 返回 runtime 数据时加密
+ *   - relay-server 端用同一个 secret 解密
  *
  * 不要用于密码、token 等敏感数据(前端 secret 注定会泄露,只起反爬/混淆作用)。
  */

@@ -75,7 +75,7 @@ cat <<EOF
   5. 本地: bash deploy/scripts/deploy-luodiye.sh /path/to/luodiye_video
             bash deploy/scripts/deploy-admin.sh
 
-  6. Relay-server(中转层,替代 CF Worker):
+  6. Relay-server(中转层):
        rsync -avz --exclude node_modules --exclude .cache --exclude .env \
          packages/relay-server/  root@<vps>:/opt/tyjx-portal-server/
        ssh <vps> 'cd /opt/tyjx-portal-server && npm install --omit=dev'

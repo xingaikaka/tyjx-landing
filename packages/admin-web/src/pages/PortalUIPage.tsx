@@ -83,7 +83,7 @@ export default function PortalUIPage() {
       <div className="card">
         <h2 className="page-title">入口/发布页 UI</h2>
         <p className="page-desc">
-          这些字段会渲染到入口页(图1)和发布页(图2)的 HTML 中,Worker 启动时拉一次后缓存 30 秒。
+          这些字段会渲染到入口页(图1)和发布页(图2)的 HTML 中,中转层拉取后缓存约 30 秒。
         </p>
 
         <div className="form-row">
@@ -324,7 +324,7 @@ export default function PortalUIPage() {
           )}
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 8 }}>
-          预览仅用于核对文案/Logo,实际样式以 Worker 渲染为准。
+          预览仅用于核对文案/Logo,实际样式以中转层渲染为准。
         </div>
       </div>
     </div>

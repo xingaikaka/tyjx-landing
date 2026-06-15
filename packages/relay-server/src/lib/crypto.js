@@ -1,11 +1,11 @@
 /**
- * AES-256-CBC 解密(Web Crypto API,Worker 兼容)
+ * AES-256-CBC 解密(Web Crypto API)
  *
  * 与 admin-server 的 lib/crypto.js 输出格式完全一致:
  *   <iv hex>:<ciphertext hex>
  * key = SHA-256(secret + "app-landing-salt")
  *
- * Worker 端只需要 decrypt;runtime 是 admin → Worker 单向流。
+ * 本服务只需要 decrypt;runtime 是 admin → relay-server 单向流。
  */
 
 const SALT = 'app-landing-salt';

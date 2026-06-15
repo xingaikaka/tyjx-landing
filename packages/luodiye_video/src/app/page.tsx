@@ -145,24 +145,40 @@ const DownloadButton = ({
     )
   }
 
-  if (type === 'ios' && iosHref) {
-    // itms-services 必须同窗口跳,App Store / TestFlight 也是同窗口体验最佳
+  if (type === 'ios') {
+    // iOS 地址完全由后台 iosDownloadUrl 配置(地址常变,不写死在代码)。
+    //   - 后台填了地址 → <a href data-openinstall>:href 既是兜底地址,
+    //     也让 OpenInstall SDK 打点/唤起(SDK ready 时 800ms/1.2s 没跳成功再 location.href)。
+    //   - 后台留空   → <button data-openinstall>:纯靠 OpenInstall SDK 唤起/跳商店,无 URL 兜底。
+    if (iosHref) {
+      return (
+        <a
+          href={iosHref}
+          data-openinstall
+          rel="noopener"
+          className="cursor-pointer iphone no-underline"
+        >
+          {inner}
+        </a>
+      )
+    }
     return (
-      <a
-        href={iosHref}
-        rel="noopener"
-        className="cursor-pointer iphone no-underline"
+      <button
+        type="button"
+        data-openinstall
+        className="cursor-pointer border-none bg-transparent iphone"
       >
         {inner}
-      </a>
+      </button>
     )
   }
 
+  // 仅 Android 且无 apkHref 时走到这里:纯 SDK 唤起按钮
   return (
     <button
       type="button"
       data-openinstall
-      className={`cursor-pointer border-none bg-transparent ${type === 'ios' ? 'iphone' : 'android'}`}
+      className="cursor-pointer border-none bg-transparent android"
     >
       {inner}
     </button>
@@ -191,7 +207,7 @@ const OfficialCooperationButton = ({ link }: { link: string }) => (
 )
 
 export default function Home() {
-  const { config, loaded } = useLandingConfig()
+  const { config } = useLandingConfig()
   const [isIOS, setIsIOS] = useState(false)
   const [isAndroid, setIsAndroid] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
@@ -226,11 +242,13 @@ export default function Home() {
   const downloadButtons = useMemo(() => {
     if (!isMounted) return null
 
+    const iosHrefResolved = config.iosDownloadUrl
+
     const iosBtn = config.downloadButtons.ios.enabled ? (
       <DownloadButton
         type="ios"
         label={config.downloadButtons.ios.label}
-        iosHref={config.iosDownloadUrl || undefined}
+        iosHref={iosHrefResolved}
       />
     ) : null
     const androidBtn = config.downloadButtons.android.enabled ? (
@@ -386,7 +404,10 @@ export default function Home() {
         </div>
       </footer>
 
-      {loaded && config.openInstallAppKey ? (
+      {/* SDK 立即挂载（appKey 初始就是默认 'ecedok',无需等后台配置加载）。
+          关键:不能用 loaded 阻塞,否则新随机域名无缓存时,SDK 注入要等 config
+          fetch 完才开始,用户点击时 SDK 还没 ready → 落入兜底,不触发 OpenInstall。*/}
+      {config.openInstallAppKey ? (
         <OpenInstallScript appKey={config.openInstallAppKey} />
       ) : null}
     </main>

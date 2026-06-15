@@ -1,5 +1,5 @@
 /**
- * Worker 通用工具:HTML escape / Response helpers / scheme 推断
+ * 通用工具:HTML escape / Response helpers / scheme 推断
  */
 
 const HTML_ESC = {
@@ -74,4 +74,22 @@ export function randomSubdomain(len = 12) {
   let s = '';
   for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
   return s;
+}
+
+/**
+ * 渠道参数 channelCode 清洗:仅保留安全字符(字母/数字/下划线/连字符),限长 64,
+ * 防止被注入到 URL / HTML。返回 '' 表示无有效渠道码。
+ */
+export function sanitizeChannelCode(raw) {
+  const s = String(raw == null ? '' : raw).trim();
+  return /^[A-Za-z0-9_-]{1,64}$/.test(s) ? s : '';
+}
+
+/**
+ * 把 channelCode 拼成可直接附加到 URL 的 query 串(含前导 ?)。
+ * 渠道码无效/为空时返回 '',保证链路无渠道时也能正常工作。
+ */
+export function channelQuery(channelCode) {
+  const c = sanitizeChannelCode(channelCode);
+  return c ? `?channelCode=${encodeURIComponent(c)}` : '';
 }

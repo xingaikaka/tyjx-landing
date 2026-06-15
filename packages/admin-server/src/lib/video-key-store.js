@@ -2,7 +2,7 @@
  * HLS AES-128 视频 Key 存储
  *
  * 设计与 dp/tyjx-admin/server/src/lib/video-store.js 同源,做了两点不同:
- *   1. 加密算法继续用本系统的 lib/crypto.js (AES-256-CBC, 与 Worker 通信加密一致)
+ *   1. 加密算法继续用本系统的 lib/crypto.js (AES-256-CBC, 与 relay-server 通信加密一致)
  *      ─ dp 用的是它自己的 aes.js (GCM),无所谓,反正只在本机解
  *   2. 落盘位置可配置 VIDEO_KEY_DIR(默认 packages/admin-server/src/data/video-keys/)
  *
@@ -11,7 +11,7 @@
  *
  * 安全模型:
  *   - rawKey 永远只出现在 admin 进程内存 + 本地 .enckey 文件
- *   - Cloudflare R2 / 腾讯 CDN / Worker 都拿不到
+ *   - Cloudflare R2 / 腾讯 CDN / relay-server 都拿不到
  *   - 即使本地 .enckey 文件被偷,没有 PORTAL_API_SECRET 也解不了
  *   - 服务器上的 enckey 文件应当随服务器整体备份(丢了所有视频都无法播放)
  */
